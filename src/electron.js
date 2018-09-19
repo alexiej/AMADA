@@ -24,7 +24,6 @@ export function get_app_folder() {
 
 export function is_dev() {
   return process.env.NODE_ENV == "development";
-  // console.log(process.env.NODE_ENV);
   // return process.mainModule.filename.indexOf("app.asar") === -1;
 }
 

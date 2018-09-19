@@ -63,8 +63,7 @@ Vue.component('amada-section',Section)
 
 import {get_folder} from './electron.js';
 
-// console.log(get_folder());
-// console.log(__dirname);
+
 
 export default {
   data() {

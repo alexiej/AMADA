@@ -14,6 +14,16 @@ export function models_default(models = []) {
   );
   models.push(
     new Model(
+      "section-part",
+      "section-part",
+      "section",
+      "amada-section",
+      false,
+      false
+    )
+  );
+  models.push(
+    new Model(
       "section-inline",
       "section-inline",
       "inline",

@@ -8,7 +8,6 @@ export function assign_parent(parent, children) {
 }
 
 export function file_read(path, opts = "utf8") {
-  console.log(path);
   return new Promise((res, rej) => {
     fs.readFile(path, opts, (err, data) => {
       if (err) rej(err);

@@ -1,7 +1,7 @@
 import Code from "./Code";
 // import ModelCreator from "./ModelCreator";
 
-const create_const = (model, value, properties, codes) => {
+const create_const = (model, value, properties = [], codes = []) => {
   let headers = [];
   for (let m of model.headers) {
     headers.push(m.create(m, value));
@@ -39,13 +39,17 @@ export default class Model {
     this.is_visible = is_visible;
 
     if (create_function != undefined) {
-      this.create = create_function;
+      this.create_function = create_function;
     } else {
-      this.create = create_const;
+      this.create_function = create_const;
     }
     this.properties = properties; //<- properties are not models, this is a list of possible properties
     this.headers = headers; //this is function that returns a model
     // this.codes = codes; //this is a pair of value and model, and also owns, values
     this.footers = footers; //this is a pair of value and model, and also owns, values
+  }
+
+  create(value, properties = [], codes = []) {
+    return this.create_function(this, value, properties, codes);
   }
 }

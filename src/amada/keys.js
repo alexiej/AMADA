@@ -8,8 +8,6 @@ export const keys = {
     var keys = [];
     let type_mode = this.view.type + "/" + this.view.mode;
 
-    // console.log("keys", type_mode);
-
     if (!(type_mode in this.keys)) {
       if (!(this.view.type in this.keys)) return;
       keys = this.keys[this.view.type];

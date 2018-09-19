@@ -16,11 +16,10 @@ export default class Part {
     this.code_lines = [];
     this.section = schema.models.section.create(this.name);
 
-    this.__add_lines();
+    // this.__add_lines();
 
     // this.add(this.section);
     // this.insert(this.section);
-    // console.log(this);
   }
 
   /**
@@ -51,8 +50,6 @@ export default class Part {
     }
     this.code_lines = []; //this is a version of the code to load
     this.get_lines(this.codes);
-
-    // console.log(this.code_lines);
   }
 
   get_lines(codes, line = 0) {

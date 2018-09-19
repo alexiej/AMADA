@@ -17,10 +17,6 @@ var folder = get_app_folder();
 Vue.prototype.$app_dir = folder;
 Vuex.Store.prototype.$app_dir = folder;
 
-// amada.$router = router;
-// console.log(amada);
-console.log(is_dev(), folder);
-
 let vue = new Vue({
   router,
   store,

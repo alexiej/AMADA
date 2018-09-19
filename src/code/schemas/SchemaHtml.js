@@ -14,20 +14,16 @@ export default class SchemaHtml extends Schema {
   }
 
   async parts_decode(file) {
-    // console.log("decode");
     let text = (await readFile(file.path)).toString();
     let json = parse(text);
 
-    // console.log(json);
-    // console.log(text);
     // fs.readFile("input.txt", function(err, data) {
     //   if (err) {
     //     return console.error(err);
     //   }
-    //   console.log("Asynchronous read: " + data.toString());
+
     // });
 
-    // console.log(text);
     return [
       new Part("html", "html", [
         new Code(this.models.section, "A" + Math.random() * 100)

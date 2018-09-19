@@ -60,7 +60,6 @@ export default class PartView {
 
   cursor_update(amada) {
     let component = amada.components[this._component_id];
-    // console.log("cursor_update", component);
 
     if (component == undefined) return;
     component.scroll_top();

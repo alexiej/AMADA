@@ -37,5 +37,3 @@ export const schemas = {
   mock: new SchemaMock(),
   html: new SchemaHtml()
 };
-
-console.log(schemas);

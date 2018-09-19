@@ -53,7 +53,6 @@ export default {
   },
   methods: {
     scroll_top() {
-      // console.log(this.$refs);
       // this.cursorTopPosition = this.fileView.line * this.lineSize
       // this.cursorLeftPosition = this.measureText(this.fileView.lineText)
       let n = (this.part_view.top - 5) * this.lineSize

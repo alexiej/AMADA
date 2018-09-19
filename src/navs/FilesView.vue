@@ -29,16 +29,7 @@ export default {
     "file-info": FileInfo
   },
   mounted() {
-    // this.$amada.EventBus.$on('i-got-clicked', clickCount => {
-    //   console.log(`Oh, that's nice. It's gotten ${clickCount} clicks! :)`)
-    // });
-    // this.$amada.on
-    // this.$amada.$on('file_open', clickCount => {
-    //   console.log(`Oh, that's nice. It's gotten ${clickCount} clicks! :)`)
-    // });
-    // this.$amada.on('file/open', function(f) {
-    //   console.log('file have been opened', f);
-    // });
+   
   },
   methods: {
     showOpen() {

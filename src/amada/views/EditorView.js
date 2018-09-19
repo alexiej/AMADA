@@ -71,7 +71,6 @@ function get_down(code, pos) {
     //we need to go to further parent
     // return get_next();
   }
-  // console.log(parent.codes, ind);
   return parent.codes[ind];
 }
 
@@ -143,25 +142,6 @@ export default class EditorView extends View {
     // pv.cursor_code.model.
     // this.part_view.down(par);
   }
-
-  // run(source_event, amada, action) {
-  //   if (this.part_view.cursor_code == undefined) return;
-  //   let c = this.part_view.cursor_code;
-
-  //   // console.log(c, action.action);
-  //   if (action.action in c.model) {
-  //     c.model[action.action](c, this.part_view, source_event, amada, action);
-  //   }
-
-  //   // this.part_view.cursor_code = //section or code
-  //   // this.part_view.
-  //   // console.log("run action: ");
-  //   // if (!(act.action in target)) return;
-  //   // target[act.action](this, act.par);
-  //   // let component = this.components[target._component_id];
-  //   // if (component == undefined) return;
-  //   // component.$emit(act.action, act);
-  // }
 
   part_view_set(part_id) {
     if (part_id in this.part_views) {
