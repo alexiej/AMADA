@@ -1,0 +1,73 @@
+$line-height: 24px;
+
+.amada-part {
+  background: white;
+
+  position: relative;
+  display: flex;
+  padding: 0;
+  width: 100%; 
+  height: 100%; 
+  font-family: consolas; 
+  font-size: 14pt; 
+  line-height: 24px;
+  overflow: auto;
+  padding-right: 5px;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 18px;
+
+
+
+
+  .amada-lines {
+    width: 40px;
+    color: $grey-light;
+    text-align: right;
+    padding-right: 0;
+
+    >.line-number {
+      padding-right: 5px;
+    }
+
+
+  }
+
+
+  .amada-content {
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+    .cursor {
+      position: absolute;
+    }
+
+    .amada-section {
+      display: block;
+
+      >.section-content {
+        margin-left: 15px;
+
+      }
+
+    }
+
+
+
+    .amada-line {
+      display: block;
+      height: $line-height;
+    }
+
+    .amada-inline {
+      display: inline-block;
+      line-height: $line-height;
+      
+    }
+  }
+
+
+
+}
+
+

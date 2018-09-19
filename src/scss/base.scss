@@ -1,5 +1,19 @@
-@import 'base/reset';
-@import 'base/form';
-@import 'base/general';
-@import 'utilities/utilities';
-@import 'animations/animations';
+@import 'base/__reset';
+@import 'base/__form';
+@import 'base/__general';
+@import 'base/text';
+@import 'utilities/__utilities';
+@import 'animations/__animations';
+@import 'base/_elementui';
+$fa-font-path : "~@fortawesome/fontawesome-free/webfonts";
+
+@import "~@fortawesome/fontawesome-free/scss/fontawesome.scss";
+@import "~@fortawesome/fontawesome-free/scss/solid.scss";
+@import "~@fortawesome/fontawesome-free/scss/regular.scss";
+@import "~@fortawesome/fontawesome-free/scss/brands.scss";
+
+@import 'settings.scss';
+@import 'components/buttons.scss';
+@import 'components/amada-editor.scss';
+@import 'components/amada-part.scss';
+@import 'theme/theme.scss';

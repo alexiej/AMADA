@@ -13,6 +13,11 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.3.1",
+    "brace": "^0.11.1",
+    "element-ui": "^2.4.6",
+    "fs-jetpack": "^2.1.0",
+    "himalaya": "^1.1.0",
     "vue": "^2.5.17",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1"
@@ -27,11 +32,25 @@
     "@vue/test-utils": "^1.0.0-beta.20",
     "chai": "^4.1.2",
     "electron": "^2.0.2",
+    "jstransformer-markdown-it": "^2.1.0",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.0.1",
     "vue-cli-plugin-electron-builder": "^1.0.0-rc.2",
+    "vue-cli-plugin-pug": "^1.0.5",
     "vue-cli-plugin-scss-base": "^0.1.8",
     "vue-template-compiler": "^2.5.17"
+  },
+  "dev": {
+    "appId": "com.amada.app",
+    "extraResources": [
+      "./data/**"
+    ]
+  },
+  "build": {
+    "appId": "com.amada.app",
+    "extraResources": [
+      "./data/**"
+    ]
   },
   "main": "dist_electron/bundled/background.js"
 }

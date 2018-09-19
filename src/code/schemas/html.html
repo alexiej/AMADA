@@ -1,0 +1,54 @@
+TYPY:
+0 - characters
+1 - regex
+2 - named schema
+
+
+
+
+TYPE: .html
+
+STRUCTURE:
+MAIN_FILE:
+  TAG<BODY>
+    TAG<HEAD>
+      TAG+
+    TAG<CONTENT>
+      TAG+
+
+TAG:
+  
+
+
+OUTPUT:
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+  </head>
+  <body>
+    BODY
+  </body>
+  </html>
+
+
+CONVERTER:
+  
+
+TEXT: <BODY>
+  HEAD:
+    CHAR: <head>
+    END: </head>
+  TAG: 
+      PROPERTIES: [a,b,c,] list of properties
+      CHAR: "<"  (chars) [name] ">"
+      OUTPUT: <NAME>\n  [element]\n</NAME>
+      VIEW: [name]
+      PREVIEW: 
+      ELEMENTS:
+        TAG
+      CHAR: "<" + NAME + ">" => END SECTION
+TEXT: </BODY>

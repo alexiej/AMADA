@@ -38,6 +38,17 @@ body {
   }
 }
 
+* {
+  &::-webkit-scrollbar {
+    width: 0;
+  }
+  &:hover::-webkit-scrollbar  {
+    width: 8px;
+    -webkit-transition: width 2s; /* Safari */
+    transition: width 2s;
+  }
+}
+
 strong {
   font-weight: bold;
 }

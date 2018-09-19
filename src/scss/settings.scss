@@ -1,8 +1,9 @@
-@import 'variables/breakpoints';
-@import 'variables/colors';
-@import 'variables/layout';
-@import 'variables/fonts';
-@import 'variables/hamburger';
-@import 'variables/animation';
-@import 'mixins/mixins';
-@import 'functions/functions';
+@import 'variables/__breakpoints';
+@import 'variables/__colors';
+@import 'variables/__layout';
+@import 'variables/__fonts';
+@import 'variables/__hamburger';
+@import 'variables/__animation';
+@import 'mixins/__mixins';
+@import 'functions/__functions';
+@import 'variables/_size';

@@ -22,7 +22,13 @@ protocol.registerStandardSchemes(["app"], {
 });
 
 function createMainWindow() {
-  const window = new BrowserWindow();
+  const window = new BrowserWindow({
+    titleBarStyle: "customButtonsOnHover",
+    frame: false,
+    height: 563,
+    useContentSize: true,
+    width: 1000
+  });
 
   if (isDevelopment) {
     // Load the url of the dev server if in development mode

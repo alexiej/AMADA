@@ -1,0 +1,81 @@
+$primary-color: rgb(166, 22, 238);
+$layout-color: rgba(204, 204, 204, 0.3);
+
+.cursor {
+  background-color: rgba($primary-color,0.3);
+
+  &.edit {
+    background-color: rgba(red,0.3);
+  }
+}
+
+
+
+// ::-webkit-scrollbar {
+// width: 8px;
+// width: 0px;
+// &:hover {
+//   width: 8px;
+// }
+
+// }
+/* Track */
+::-webkit-scrollbar-track {
+-webkit-border-radius: 5px;
+border-radius: 5px;
+
+}
+  
+/* Handle */
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba($primary-color,0.23);
+}
+
+
+.line-number {
+  color: rgba(128,128,128,0.53);
+}
+
+.code {
+  color: blue;
+}
+
+
+.part {
+  // background: green;
+}
+
+.selected-code {
+  background-color: rgba(0,25,255,.2ik)
+}
+
+.amada-section {
+  
+  >.section-header {
+    background-color: rgba(255,0,0,0.02);
+    color:rgba(250,100,200,1.0);
+  }
+
+
+  &.line-number {
+    color: rgba(250,100,200,0.5);
+    // background-color: rgba(255,0,0,0.2);;
+  }
+
+
+  // background: red;
+}
+
+.group {
+  color: red; 
+
+  .prefix {
+    color: blue;
+  }
+
+  .suffix {
+    color: green;
+  }
+}

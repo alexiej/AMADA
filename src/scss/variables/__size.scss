@@ -1,0 +1,32 @@
+$small: 1.4rem;
+$regular: 2.5rem;
+
+$medium: 3rem;
+$large: 4rem;
+
+
+@mixin size($size) {
+  width: $size;
+  height: $size;
+  line-height: $size;
+  font-size: $size;
+
+  i {
+    line-height: $size;
+    width: $size;
+    height: $size;
+  }
+}
+
+@mixin small() {
+
+}
+
+@mixin large() {
+  @include size($large)
+
+}
+
+@mixin regular() {
+  @include size($regular);
+}
