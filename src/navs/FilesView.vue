@@ -12,12 +12,6 @@
     | {{$amada.editor_view.name}}:{{$amada.editor_view.part_view.name}}
     div
       file-info(v-for="ev in $amada.editor_views",:editor_view="ev")
-    //- p
-    //-   :markdown-it(inline)
-    //-     **BOLD TEXT** _italic_
-    //-     and this is markdown. 
-    //-     # Title 
-    //-   include:markdown-it info.md
 </template>
 <script>
 import FileInfo from "./FilesView/FileInfo";

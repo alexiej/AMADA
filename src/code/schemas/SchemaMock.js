@@ -14,12 +14,10 @@ function create_codes(m, len = 5) {
             "line1",
             [],
             [
-              [
-                m.inline.create("code1"),
-                m.inline.create("code2"),
-                m.inline.create("code3"),
-                m.inline.create("code4")
-              ]
+              m.inline.create("code1"),
+              m.inline.create("code2"),
+              m.inline.create("code3"),
+              m.inline.create("code4")
             ]
           ),
           m.line.create("line2"),

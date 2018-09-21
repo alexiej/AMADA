@@ -19,12 +19,14 @@ export class CreatorValue extends Creator {
 }
 
 export class CreatorText extends Creator {
-  constructor(model_name) {
+  constructor(model_name, text) {
     super(model_name);
+    this.text = text;
   }
 
   create(model, root_value, root_parameters, root_codes) {
     return model.create(this.value);
+    this.text = 
   }
 }
 

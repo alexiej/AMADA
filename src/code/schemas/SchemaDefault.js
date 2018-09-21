@@ -1,35 +1,52 @@
 import Schema from "../Schema.js";
-import Model from "../Model";
+import {
+  Model,
+  MODEL_INLINE,
+  MODEL_LINE,
+  MODEL_SECTION,
+  MODEL_GROUP
+} from "../Model";
+
 // import { CreatorValue } from "../Creators.js";
 // import Section from "../models/Section";
 // import Properties from "../models/Properties";
 // import SectionLine from "../models/SectionInline";
 // import Line from "../models/Line";
 // import Inline from "../models/Inline";
-
+/**
+ * 
+ *   id,
+    name,
+    component_class = "",
+    component_name,
+    type = 0, //<-0 line, 1 - inline, 2 - section, 3 - inline group
+    is_visible = true,
+    properties = [],
+    headers = [],
+    footers = [],
+    create_function = undefined
+ */
 export function models_default(models = []) {
-  models.push(new Model("line", "line", "line", "amada-line", true, false));
+  models.push(new Model("line", "line", "line", "amada-line", MODEL_LINE));
   models.push(
-    new Model("inline", "inline", "inline", "amada-inline", false, false)
+    new Model("inline", "inline", "inline", "amada-inline", MODEL_INLINE)
   );
   models.push(
     new Model(
       "section-part",
       "section-part",
-      "section",
+      "section-part",
       "amada-section",
-      false,
-      false
+      MODEL_SECTION
     )
   );
   models.push(
     new Model(
       "section-inline",
       "section-inline",
-      "inline",
+      "section-inline",
       "amada-inline",
-      false,
-      true
+      MODEL_GROUP
     )
   );
   models.push(
@@ -38,8 +55,7 @@ export function models_default(models = []) {
       "section",
       "section",
       "amada-section",
-      true,
-      false,
+      MODEL_SECTION,
       true,
       [],
       [
@@ -48,9 +64,7 @@ export function models_default(models = []) {
           "section-header",
           "line",
           "amada-line",
-          true,
-          false,
-          true
+          MODEL_LINE
         )
       ],
       [
@@ -59,9 +73,7 @@ export function models_default(models = []) {
           "section-footer",
           "line",
           "amada-line",
-          true,
-          false,
-          true
+          MODEL_LINE
         )
       ]
     )

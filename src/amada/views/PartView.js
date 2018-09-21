@@ -16,7 +16,7 @@ export default class PartView {
 
     this._component_id = -1;
 
-    let cc = this.part.codes.length > 0 ? this.part.codes[0] : undefined;
+    let cc = this.codes.length > 0 ? this.codes[0] : undefined;
     this.cursor_code = cc;
     this.cursor_line = cc;
     // this.cursor_line; //<-this is cursor line and it should affect the real position of the code
@@ -27,11 +27,19 @@ export default class PartView {
   }
 
   get id() {
-    return this.part.id;
+    return this._component_id;
   }
 
   get name() {
     return this.part.name;
+  }
+
+  get codes() {
+    return this.part.section.codes;
+  }
+
+  get code_lines() {
+    return this.part.code_lines;
   }
 
   cursor_line_set(amada, line) {
@@ -46,7 +54,7 @@ export default class PartView {
 
   cursor_code_set(amada, code) {
     // this.top = code.line;
-    this.cursor_line = code.get_nearest_line();
+    this.cursor_line = code.nearest_line;
     this.cursor_code = code;
 
     let component = amada.components[this._component_id];

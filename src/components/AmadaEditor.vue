@@ -5,8 +5,8 @@
          class="amada-tab" >
            <el-tab-pane 
            :label="pv.name" 
-           :key="pv.id" 
-           :name="pv.id" 
+           :key="pv.name" 
+           :name="pv.name" 
            v-for="pv in editor_view.part_views">
                 <apart :part_view="pv" >
                 </apart>

@@ -1,14 +1,10 @@
 <template>
-  <div :class="code.model.name">
-    <span class="amada-inline">{{code.name}}</span>
-      <!-- <span class="content">{{code.name}}</span> -->
-    <component :key="c.id" 
-     :part_view="part_view"
-                      :class="{'selected-line': c==part_view.cursor_line,'selected-code':c==part_view.cursor_code}"
+  <div :class="[code.model.component_class, code.item_class]"    :id="(part_view.id + '/' + code.id)">
+      <span>{{code.value}}</span>
+      <amada-codes :container_class="code.header_class" v-if="code.has_header" :codes="code.headers" :part_view="part_view"/>
+      <amada-codes :container_class="code.codes_class" v-if="code.has_codes" :codes="code.codes" :part_view="part_view"/>
+      <amada-codes :container_class="code.footer_class" v-if="code.has_footers" :codes="code.footers" :part_view="part_view"/>
 
-              v-for="c in code.codes" :code="c"
-              v-bind:is="c.model.component_name">
-    </component>
   </div>
 </template>
 <script>

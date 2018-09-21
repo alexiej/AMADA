@@ -51,7 +51,7 @@ import FilesView from "./navs/FilesView";
 import Vue from "vue";
 import { toggleDev } from "./electron.js";
 
-
+import Codes from "./components/AmadaEditor/Codes";
 import Inline from "./components/AmadaEditor/Inline";
 import Line from "./components/AmadaEditor/Line";
 import Section from "./components/AmadaEditor/Section.vue";
@@ -60,6 +60,7 @@ import Section from "./components/AmadaEditor/Section.vue";
 Vue.component('amada-line', Line)
 Vue.component('amada-inline', Inline)
 Vue.component('amada-section',Section)
+Vue.component('amada-codes',Codes)
 
 import {get_folder} from './electron.js';
 

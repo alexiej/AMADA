@@ -4,10 +4,11 @@
     ref = "editor"
     class="amada-part" 
     >
+
     <div class="amada-lines">
       <div class="line-number"
       :class="[c.model.name]"
-      v-for="(c, index) in part_view.part.code_lines"
+      v-for="(c, index) in part_view.code_lines"
       :key="index"
       >{{index}}</div>
     </div>
@@ -21,12 +22,9 @@
           'top': top+'px',
           'left': left + 'px'
           }"></div>
-       <component :key="c.id" 
-                  :part_view="part_view"
-                 :class="{'selected-line': c==part_view.cursor_line,'selected-code':c==part_view.cursor_code}"
-                  v-for="c in part_view.part.codes" :code="c"
-                  v-bind:is="c.model.component_name">
-        </component>
+
+      <amada-section :code="part_view.part.section" :part_view="part_view" />
+      
       <!-- <amada-codes :codes="part_view.part.codes"/> -->
 
    
@@ -36,9 +34,13 @@
  </div>
 </template>
 <script>
+import Codes from './Codes';
 
 export default {
   props: ["part_view"],
+  components: {
+    'amada-codes': Codes
+  },
   data() {
     return {
       top: 0,
@@ -48,7 +50,9 @@ export default {
       lineSize: 24,
     };
   },  
+
   mounted() {
+    console.log(this.part_view);
     this.$amada.components_connect(this, this.part_view);
   },
   methods: {
@@ -60,7 +64,7 @@ export default {
     },
 
     cursor_to_code(code) {
-      var element = document.getElementById(code.id);
+      var element = document.getElementById(this.part_view.id + "/" + code.id);
       // var rect = element.getBoundingClientRect();
       this.top = element.offsetTop;
       this.left = element.offsetLeft;

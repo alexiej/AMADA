@@ -23,7 +23,6 @@ export const keys = {
     if (target == undefined) return;
 
     if (!(act.action in target)) return;
-
     target[act.action](key, this, act.par);
   }
 };

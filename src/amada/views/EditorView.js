@@ -96,8 +96,9 @@ export default class EditorView extends View {
     this.part_views = {};
 
     for (let p of file.parts) {
-      this.part_views[p.id] = new PartView(this, p);
+      this.part_views[p.name] = new PartView(this, p);
     }
+
     if (part_id != "") {
       this.part_view = this.part_views[part_id];
     } else if (Object.keys(this.part_views).length > 0) {
@@ -107,53 +108,44 @@ export default class EditorView extends View {
     }
   }
 
-  right(source_event, amada, par) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-    let code = get_next(pv.cursor_code, par); //get first
-    pv.cursor_code_set(amada, code);
-  }
-
-  /**
-   * Go to next value in the group based on the parent, and go the next line
-   * if it's possible (section)
-   * @param {*} source_event
-   * @param {*} amada
-   * @param {*} par
-   */
-  down(source_event, amada, par) {
-    let pv = this.part_view;
-    if (pv.cursor_line == undefined) return;
-    // let index = pv.cursor_line.line + par;
-
-    // if (index < 0) index = 0;
-    // if (index >= pv.part.code_lines.length)
-    //   index = pv.part.code_lines.length - 1;
-
-    let code = undefined;
-    if (pv.cursor_line != pv.cursor_code && par < 0) {
-      code = pv.cursor_line;
-    } else {
-      code = get_down(pv.cursor_line, par);
-    }
-
-    pv.cursor_code_set(amada, code);
-
-    // pv.cursor_code.model.
-    // this.part_view.down(par);
-  }
-
-  part_view_set(part_id) {
-    if (part_id in this.part_views) {
-      this.part_view = this.part_views[part_id];
-    }
-  }
-
   get part_view_id() {
-    return this.part_view.id;
+    return this.part_view.name;
   }
 
   set part_view_id(val) {
     this.part_view = this.part_views[val];
+  }
+
+  next(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+    let code = pv.cursor_code;
+    for (let i = 0; i < par; i++) code = code.next(); // get_next(pv.cursor_code, par); //get first
+    pv.cursor_code_set(amada, code);
+  }
+
+  prev(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+
+    let code = pv.cursor_code;
+    for (let i = 0; i < par; i++) code = code.prev(); // get_next(pv.cursor_code, par); //get first
+    pv.cursor_code_set(amada, code);
+  }
+
+  down(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+
+    let code = pv.cursor_code.down(par); // get_next(pv.cursor_code, par); //get first
+    pv.cursor_code_set(amada, code);
+  }
+
+  up(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+
+    let code = pv.cursor_code.up(par); // get_next(pv.cursor_code, par); //get first
+    pv.cursor_code_set(amada, code);
   }
 }

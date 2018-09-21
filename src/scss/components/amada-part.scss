@@ -42,28 +42,57 @@ $line-height: 24px;
       position: absolute;
     }
 
-    .amada-section {
+    .section-item {
       display: block;
 
-      >.section-content {
+      >.section-codes {
         margin-left: 15px;
+      }
 
+      &.section-part>.section-codes {
+        margin-left: 0;
+      }
+
+    }
+    
+
+    .line-item {
+      display: block;
+      width: 100%;
+      height: $line-height;
+
+      .line-header  {
+        display: inline-block;
+      }
+      .line-codes {
+        display: inline-block;
+      }
+
+      .line-footer {
+        display: inline-block;
       }
 
     }
 
 
 
-    .amada-line {
-      display: block;
-      height: $line-height;
-    }
-
-    .amada-inline {
+    .inline-item {
       display: inline-block;
       line-height: $line-height;
-      
+
+      .inline-header  {
+        display: inline-block;
+      }
+      .inline-codes {
+        display: inline-block;
+      }
+
+      .inline-footer {
+        display: inline-block;
+      }
     }
+
+   
   }
 
 

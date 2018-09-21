@@ -25,10 +25,10 @@ export const keys = {
   "editor/edit": {
     //this means that this is when active is code
     //this is standard view for editor
-    i: { target: "editor", action: "down", par: -1 },
+    i: { target: "editor", action: "up", par: 1 },
     k: { target: "editor", action: "down", par: 1 },
-    j: { target: "editor", action: "right", par: -1 },
-    l: { target: "editor", action: "right", par: 1 }
+    j: { target: "editor", action: "prev", par: 1 },
+    l: { target: "editor", action: "next", par: 1 }
   }
 };
 
