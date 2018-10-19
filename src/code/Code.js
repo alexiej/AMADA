@@ -1,34 +1,37 @@
+// import { CODE_HEADER, CODE_CODES, CODE_FOOTER } from "./Model";
+
 export default class Code {
   constructor(
     model,
-    value = "",
+    key = "", //<-id of the code
+    value = "", //<-value of the cod
     properties = [],
-    codes = [],
-    headers = [],
-    footers = []
+    codes = []
+    // headers = [],
+    // footers = []
   ) {
+    this.parent = undefined;
+    this.part = undefined; //<- we need to have connection to the part
+
     this.model = model;
     this.id = -1; //need to be identified in Part
     this.line = 0;
     this.properties = properties; //<-properties of the codes, properties can be visible inside code section
+    this.key = key;
     this.value = value; //<-sometimes when we need add name to the section
-
-    //code header and footer
-    this.headers = headers; //<- list of headers of the code
     this.codes = codes; //<- list of codes assign to the code
-    this.footers = footers; //<- list of foooters of the code
+  }
+
+  get has_properties() {
+    return this.properties.length > 0;
   }
 
   get has_codes() {
     return this.codes.length > 0;
   }
 
-  get has_header() {
-    return this.headers.length > 0;
-  }
-
-  get has_footers() {
-    return this.footers.length > 0;
+  get has_value() {
+    return this.model.has_value;
   }
 
   /**
@@ -39,6 +42,7 @@ export default class Code {
     if (c.has_codes && include_children) {
       return c.codes[0];
     }
+
     let p = c.parent;
     if (p == undefined) {
       return c.last();
@@ -71,46 +75,32 @@ export default class Code {
     return this;
   }
 
-  up(par = 1) {
-    let ind = this.line - par;
-    let part = this.part;
-    if (ind < 0) {
-      return part.code_lines[0];
+  up() {
+    let code = this.nearest_line;
+    let parent = code.parent;
+    if (parent == undefined) return code;
+
+    let ind = parent.codes.indexOf(code) - 1;
+    if (ind <= 0) {
+      return parent.codes[0];
     } else {
-      return part.code_lines[ind];
+      return parent.codes[ind];
     }
   }
 
-  down(par = 1) {
-    let ind = this.line + par;
-    let part = this.part;
-    if (ind >= part.code_lines.length) {
-      return part.code_lines[part.code_lines.length - 1];
-    } else {
-      return part.code_lines[ind];
-    }
-    // let c = this;
-    // let p = c.parent;
-    // if (p == undefined) return c;
-    // let ind = p.codes.indexOf(c) + 1;
-  }
-  // length() {
-  //   //length of the code
-  //   return 0;
-  // }
+  down() {
+    let code = this.nearest_line;
 
-  /**
-   * Add to the end of the codes
-   *
-   * We can assign new code, and set for them a parent
-   * We need to add codes from the part system to know
-   * if everything goes allright
-   */
-  // add(codes = []) {
-  //   for(let c of codes) {
-  //     this.codes.push(c);
-  //   }
-  // }
+    let parent = code.parent;
+    if (parent == undefined) return code;
+
+    let ind = parent.codes.indexOf(code) + 1;
+    if (ind >= parent.codes.length) {
+      return parent.codes[parent.codes.length - 1];
+    } else {
+      return parent.codes[ind];
+    }
+  }
 
   get nearest_line() {
     var c = this;
@@ -137,32 +127,30 @@ export default class Code {
     return this.model.is_group;
   }
 
-  get header_class() {
-    return this.model.header_class;
-  }
-
-  get codes_class() {
-    return this.model.codes_class;
-  }
-
-  get footer_class() {
-    return this.model.footer_class;
-  }
-
-  get item_class() {
-    return this.model.item_class;
+  /**
+   * Get view of the model
+   */
+  get view_id() {
+    return this.model.view_id;
   }
 
   toJSON() {
-    return {
-      model_id: this.model.id,
-      id: this.id,
-      value: this.value,
-      properties: this.properties,
-      header: this.header,
-      codes: this.codes,
-      footer: this.footer
-    };
+    return [
+      this.model.id,
+      this.id,
+      this.value,
+      this.properties.length > 0 ? this.properties : "",
+      this.codes.length > 0 ? this.codes : ""
+    ];
+  }
+
+  get _json() {
+    return this.toJSON();
+  }
+
+  preview(generator_id = "amada") {
+    // this.model.get
+    return this.model.preview(this, generator_id);
   }
 
   // /**

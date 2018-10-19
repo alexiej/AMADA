@@ -51,20 +51,24 @@ import FilesView from "./navs/FilesView";
 import Vue from "vue";
 import { toggleDev } from "./electron.js";
 
-import Codes from "./components/AmadaEditor/Codes";
-import Inline from "./components/AmadaEditor/Inline";
-import Line from "./components/AmadaEditor/Line";
-import Section from "./components/AmadaEditor/Section.vue";
+import Code from "./components/AmadaEditor/Code";
+import Ace from "./components/ace/ace";
+import Cursor from "./components/AmadaEditor/Cursor";
+// import Inline from "./components/AmadaEditor/Inline";
+// import Line from "./components/AmadaEditor/Line";
+// import Section from "./components/AmadaEditor/Section.vue";
+// import Group from "./components/AmadaEditor/Group.vue";
 
+Vue.component("amada-code", Code);
+Vue.component("amada-cursor", Cursor);
+Vue.component("amada-ace", Ace);
+// Vue.component('amada-line', Line)
+// Vue.component('amada-inline', Inline)
+// Vue.component('amada-section',Section)
+// Vue.component('amada-codes',Codes)
+// Vue.component('amada-group',Group)
 
-Vue.component('amada-line', Line)
-Vue.component('amada-inline', Inline)
-Vue.component('amada-section',Section)
-Vue.component('amada-codes',Codes)
-
-import {get_folder} from './electron.js';
-
-
+import { get_folder } from "./electron.js";
 
 export default {
   data() {
@@ -78,16 +82,26 @@ export default {
     "files-view": FilesView
   },
 
-  mounted() {
+  async mounted() {
     let v = this;
     this.isFocused2 = bw.isFocused();
 
-    bw.on('blur', (e, cmd) => {
+    bw.on("blur", (e, cmd) => {
       v.isFocused2 = false;
-    })
-    bw.on('focus', (e,cmd) => {
+    });
+    bw.on("focus", (e, cmd) => {
       v.isFocused2 = true;
-    })
+    });
+    
+    let path ='C:\\\PUBLIC\\\PROJECTS-FINAL\\\amada\\test\\index.html';
+    await this.$amada.file_open(path);
+    this.$amada.editor_view.down(undefined,this.$amada,8);
+    this.$amada.editor_view.preview();
+    
+    console.log("App.vue: ", path, this.$amada.editor_view);
+
+    // console.log(this.$amada.editor_view)
+
 
   },
   methods: {

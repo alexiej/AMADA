@@ -4,33 +4,44 @@
  * converter for the file or object. each interpreter can work with the file or
  * with the object.
  */
-// import SchemaDefault from "./schemas/default.js";
-// import SchemaMock from "./schemas/mock.js";
-// import SchemaCode from "./SchemaCode";
 
 export default class Schema {
-  constructor(id, name, models = []) {
+  constructor(id, name, models = [], templates = {}, generators = {}) {
     this.id = id;
     this.name = name;
     this.models = {};
-    this.add(models);
+
+    this.template = templates[Object.keys(templates)[0]];
+    this.templates = templates;
+    this.generators = generators;
+
+    this.add_models(models);
+    for (let k in templates) {
+      for (let tk in templates[k]) {
+        templates[k][tk].schema = this;
+      }
+    }
   }
 
-  add(models = []) {
+  get lang() {
+    return this.id;
+  }
+
+  add_templates() {}
+
+  add_models(models = []) {
     for (let m of models) {
       m.schema = this;
       this.models[m.id] = m;
     }
   }
 
-  get preview() {
-    //return html code of the file
-  }
+  preview(generator_id = "amada") {}
 
   //get output of the code
-  output(file) {
-    return "";
-  }
+  // output(file) {
+  //   return "";
+  // }
 
   parts_decode(file) {
     return {};

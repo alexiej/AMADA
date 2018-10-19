@@ -3,6 +3,7 @@ $layout-color: rgba(204, 204, 204, 0.3);
 
 .cursor {
   background-color: rgba($primary-color,0.3);
+  border-left: 1px solid red;
 
   &.edit {
     background-color: rgba(red,0.3);
@@ -33,29 +34,102 @@ border-radius: 5px;
   background: rgba($primary-color,0.23);
 }
 
-
-.line-number {
-  color: rgba(128,128,128,0.53);
+.line {
+  color: blue;
 }
+
+// .line-number {
+//   color: rgba(128,128,128,0.53);
+// }
 
 .code {
   color: blue;
 }
 
 
-.part {
-  // background: green;
+.editor-view .selected-code {
+  background-color: rgba(0,25,255,.2);
 }
 
-.selected-code {
-  background-color: rgba(0,25,255,.2ik)
+.editor-edit .selected-code {
+  background-color: rgba(0,25,255,.05);
+  .selected-id {
+    background-color: rgba(255, 0, 221,.06)
+  }
+
 }
 
-.amada-section {
+.section-part {
+
+
+  &.selected-code {
+    background-color: rgba(255, 0, 221, 0.2); 
+  }
+
+  &>.footer {
+    background-color: rgba(blue,0.5);
+    color: white;
+    width: 100%;
+    display: block;
+  }
+}
+
+.properties {
+  color:red;
+
+  .property {
+    color: rgba(black,0.8);
+
+    .key {
+      color: blue;
+    }
+
+    .val {
+      color: green;
+    }
+  }
+}
+
+
+.amada-content {
+
+  .comment  {
+    color: rgba(black,0.5);
+    opacity: 0.8;
+    // background: rgba(silver,0.03);
+  }
+
+  .edited-code {
+    background:rgba(red,0.08);
+  }
+}
+
+.value {
+
+  .key {
+    color:rgba(250,100,200,1.0);
+  }
+
+  .val {
+    color: blue;
+  }
+}
+
+.section {
   
-  >.section-header {
+  >.header {
     background-color: rgba(255,0,0,0.02);
     color:rgba(250,100,200,1.0);
+  }
+
+  >.codes {
+    border-left: 1px dashed rgba(red,0.1);
+    padding-left: 5px;
+  }
+
+  >.footer {
+    background-color: rgba(255,0,0,0.02);
+    color:rgba(250,100,0,1.0);
   }
 
 
@@ -68,14 +142,14 @@ border-radius: 5px;
   // background: red;
 }
 
-.group {
-  color: red; 
+// .group {
+//   color: red; 
 
-  .prefix {
-    color: blue;
-  }
+//   .prefix {
+//     color: blue;
+//   }
 
-  .suffix {
-    color: green;
-  }
-}
+//   .suffix {
+//     color: green;
+//   }
+// }

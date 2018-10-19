@@ -19,21 +19,22 @@ import FileInfo from "./FilesView/FileInfo";
 const { dialog } = require("electron").remote;
 
 export default {
+  data() {
+    return {
+      text: "text me"
+    };
+  },
   components: {
     "file-info": FileInfo
   },
-  mounted() {
-   
-  },
+  mounted() {},
   methods: {
     showOpen() {
       let f = dialog.showOpenDialog({
         message: "Open File"
       });
       if (f) this.$amada.file_open(f[0]);
-    },
-
-
+    }
   }
 };
 </script>

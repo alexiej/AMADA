@@ -2,10 +2,9 @@ import Vue from "vue";
 import Vuex from "vuex";
 import {
   project,
-  models,
   schemas,
   keys,
-  editor_view,
+  // editor_view,
   about
 } from "./amada/init.js";
 import { file_actions } from "./amada/file_actions";
@@ -21,12 +20,10 @@ export default new Vuex.Store({
     project: project, //current folder and project connected with the whole application
 
     view: about, //current content view connected with the state, class for view
-    editor_view: editor_view, //current editor view, we can send to an editor what we want
+    editor_view: undefined, //current editor view, we can send to an editor what we want
     editor_views: [], //list of editor views
 
     views: {}, //list all registered views than we can make an action
-
-    models: models,
     keys: keys,
     schemas: schemas //list of schemas for files
   },

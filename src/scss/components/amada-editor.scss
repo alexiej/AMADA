@@ -1,10 +1,11 @@
 .amada-editor {
   background: white;
 
-  //  display: grid;
+   display: grid;
   //  grid-template-rows: auto 1fr;
-  //  grid-template-columns: 1fr;
-  //  grid-template-areas: 'lv'
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: "cnt prv";
   //  'content'
   //  ;
   // padding: 5px;
@@ -12,6 +13,23 @@
   height: 100%; 
   padding: 5px;
   margin: 0;
+
+  .amada-tabs {
+    grid-area: cnt;
+    background-color: red;
+  }
+
+
+
+  .amada-preview {
+    // width: 100%;
+    // flex: 1 1 10px;
+    display: block;
+    // max-width: 300px;
+    grid-area: "prv";
+
+
+  }
   
   .amada-tab {
     width: 100%; 

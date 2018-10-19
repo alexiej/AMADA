@@ -1,94 +1,206 @@
 import Schema from "../Schema.js";
+import { Model } from "../Model";
 import {
-  Model,
-  MODEL_INLINE,
-  MODEL_LINE,
-  MODEL_SECTION,
-  MODEL_GROUP
-} from "../Model";
+  TEMPLATE_SECTION,
+  TEMPLATE_LINE,
+  TEMPLATE_INLINE,
+  TEMPLATE_GROUP,
+  Template
+} from "../Template.js";
 
-// import { CreatorValue } from "../Creators.js";
-// import Section from "../models/Section";
-// import Properties from "../models/Properties";
-// import SectionLine from "../models/SectionInline";
-// import Line from "../models/Line";
-// import Inline from "../models/Inline";
-/**
- * 
- *   id,
-    name,
-    component_class = "",
-    component_name,
-    type = 0, //<-0 line, 1 - inline, 2 - section, 3 - inline group
-    is_visible = true,
-    properties = [],
-    headers = [],
-    footers = [],
-    create_function = undefined
- */
 export function models_default(models = []) {
-  models.push(new Model("line", "line", "line", "amada-line", MODEL_LINE));
   models.push(
-    new Model("inline", "inline", "inline", "amada-inline", MODEL_INLINE)
+    new Model({
+      id: "line",
+      name: "line",
+      view_id: "line",
+      generator_id: "line",
+      has_value: true
+    })
+  ); //, "line", "amada-line", MODEL_LINE));
+  models.push(
+    new Model({
+      id: "inline",
+      name: "inline",
+      view_id: "inline",
+      generator_id: "inline"
+    })
   );
   models.push(
-    new Model(
-      "section-part",
-      "section-part",
-      "section-part",
-      "amada-section",
-      MODEL_SECTION
-    )
+    new Model({
+      id: "text",
+      name: "text",
+      view_id: "text",
+      generator_id: "text"
+    })
   );
   models.push(
-    new Model(
-      "section-inline",
-      "section-inline",
-      "section-inline",
-      "amada-inline",
-      MODEL_GROUP
-    )
+    new Model({
+      id: "section-part",
+      name: "section-part",
+      view_id: "section-part",
+      generator_id: "section-part",
+      has_value: false
+    })
   );
   models.push(
-    new Model(
-      "section",
-      "section",
-      "section",
-      "amada-section",
-      MODEL_SECTION,
-      true,
-      [],
-      [
-        new Model(
-          "section-header",
-          "section-header",
-          "line",
-          "amada-line",
-          MODEL_LINE
-        )
-      ],
-      [
-        new Model(
-          "section-footer",
-          "section-footer",
-          "line",
-          "amada-line",
-          MODEL_LINE
-        )
-      ]
-    )
+    new Model({
+      id: "group",
+      name: "group",
+      view_id: "group",
+      generator_id: "group",
+      has_value: false
+    })
+  );
+  models.push(
+    new Model({
+      id: "section",
+      name: "section",
+      view_id: "section",
+      generator_id: "section",
+      has_value: false
+    })
   );
 
-  // models.push(new Section(schema));
-  // models.push(new Properties(schema));
-  // models.push(new Line(schema, "section-header", "section-header"));
-  // models.push(new Line(schema, "section-footer", "section-footer"));
-  // models.push(new SectionLine(schema));
   return models;
+}
+
+import amada_gen from "../generators/amada";
+
+export function generators_default(func = amada_gen, generators = {}) {
+  let v = {
+    "*": func, //<- default if we couldn't found any generator
+    line: func,
+    inline: func,
+    text: func,
+    value: func,
+    "section-part": func,
+    group: func,
+    section: func
+  };
+
+  Object.assign(v, generators);
+  return v;
+}
+
+export function templates_default(templates = {}) {
+  Object.assign(templates, {
+    text: new Template({
+      component_class: "text",
+      type: TEMPLATE_INLINE,
+      is_select: true
+    }),
+    inline: new Template({
+      component_class: "inline",
+      type: TEMPLATE_INLINE,
+      is_select: true
+    }),
+    line: new Template({
+      component_class: "line",
+      type: TEMPLATE_LINE,
+      is_select: true,
+      header: {
+        is_visible: true,
+        prefix: "",
+        display_key: "",
+        display_val: "value",
+        suffix: ""
+      },
+      footer: {
+        is_visible: false
+      }
+    }),
+
+    value: new Template({
+      component_class: "value",
+      type: TEMPLATE_LINE,
+      is_select: true,
+      header: {
+        is_visible: true,
+        prefix: "",
+
+        display_key: "key",
+        between: ": ",
+        display_val: "value",
+        suffix: ""
+      },
+
+      footer: {
+        is_visible: false
+      }
+    }),
+    section: new Template({
+      component_class: "section",
+      type: TEMPLATE_SECTION,
+      is_select: true,
+      header: {
+        is_visible: true,
+        prefix: "",
+
+        display_key: "key",
+
+        suffix: ""
+      },
+
+      footer: {
+        is_visible: false,
+        prefix: "/",
+        display_key: "key",
+        display_val: "",
+        suffix: ""
+      }
+    }),
+    comment: new Template({
+      component_class: "comment",
+      type: TEMPLATE_SECTION,
+      is_select: true,
+      header: {
+        is_visible: true,
+        prefix: "",
+        suffix: "",
+        display_key: "",
+        display_val: "value"
+      },
+      footer: {
+        is_visible: true,
+        prefix: "",
+        suffix: ""
+        // display_value: ""
+      }
+    }),
+    "section-part": new Template({
+      component_class: "section-part",
+      type: TEMPLATE_SECTION,
+      is_select: true,
+      header: {
+        is_visible: true,
+        prefix: "",
+        suffix: "",
+        display_value: ""
+        // display_key: key => key,
+        // display_value: ""
+      },
+      footer: {
+        is_visible: true,
+        prefix: "-----END OF FILE------------------------------"
+      }
+    })
+  });
+  return templates;
 }
 
 export class SchemaDefault extends Schema {
   constructor() {
-    super("default", "default", models_default());
+    super(
+      "default",
+      "default",
+      models_default(),
+      {
+        default: templates_default()
+      },
+      {
+        amada: generators_default(amada_gen)
+      }
+    );
   }
 }

@@ -5,6 +5,9 @@ export const keys = {
     //editor/*/active
     //editor/mode
     //editor/mode/active
+
+    // console.log(key);
+
     var keys = [];
     let type_mode = this.view.type + "/" + this.view.mode;
 
@@ -15,8 +18,22 @@ export const keys = {
       keys = this.keys[type_mode];
     }
 
-    if (!(key.key in keys)) return;
-    var act = keys[key.key];
+    var k = (key.ctrlKey ? "^" : "") + key.key;
+    k = key.shiftKey ? k.toUpperCase() : k;
+    console.log("keys.js:", key, k);
+
+    if (!(k in keys)) {
+      this.view.key(key, this, "");
+      return;
+    }
+    var act = keys[k];
+    // console.log(act);
+
+    if (act.prevent) {
+      // console.log("prevent");
+      event.preventDefault();
+    }
+    event.preventDefault();
 
     // if (!this.view.mode_is(act.mode)) return;
     let target = this.view_get(act.target);

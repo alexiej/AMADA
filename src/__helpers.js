@@ -1,11 +1,17 @@
 var fs = require("fs");
 
+export function __isempty(text) {
+  return text == undefined || text == "";
+}
+
 export function assign_parent(parent, children) {
   for (let c of children) {
     c.parent = parent;
   }
   return children;
 }
+
+// export function logjson()
 
 export function file_read(path, opts = "utf8") {
   return new Promise((res, rej) => {

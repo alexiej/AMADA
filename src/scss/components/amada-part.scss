@@ -4,7 +4,8 @@ $line-height: 24px;
   background: white;
 
   position: relative;
-  display: flex;
+  // display: flex;
+  // flex-wrap: nowrap;
   padding: 0;
   width: 100%; 
   height: 100%; 
@@ -15,9 +16,20 @@ $line-height: 24px;
   padding-right: 5px;
   font-family: Consolas, "Courier New", monospace;
   font-size: 18px;
+  
 
 
+  .ace_editor  {
+    width: 50% !important;
+    height: 100%;
 
+
+// display: block !important;
+// display: none;
+    // position: relative;
+  //  flex: 1 1 100%;
+
+  }
 
   .amada-lines {
     width: 40px;
@@ -28,69 +40,83 @@ $line-height: 24px;
     >.line-number {
       padding-right: 5px;
     }
-
-
   }
+
 
 
   .amada-content {
     width: 100%;
     height: 100%;
+    
     position: relative;
 
-    .cursor {
-      position: absolute;
+    .amada-code {
+      display: block !important;
     }
 
-    .section-item {
+    .key {
+      position: relative;
+    }
+  
+    .val {
+      position: relative;
+    }
+
+    .section-part.view-section >.codes {
+      margin-left: 0;
+    }
+
+    .view-section {
       display: block;
 
-      >.section-codes {
+
+      >.codes {
+        display: block;
         margin-left: 15px;
       }
 
-      &.section-part>.section-codes {
-        margin-left: 0;
-      }
 
     }
+
+
+
+    .view-value {
+      display: inline-block;
+    }
+
+    .view-group {
+      display: inline-block;
+    }
+
+    .view-text {
+      display: inline-block;
+    }
+
+    .view-inline {
+      display: inline;
+    }
+
+    .view-group {
+      display: inline-block;
+    }
+    // .amada-line {
+    //   display: block;
+    // }
+
+    // .amada-section {
+    //   display: block;
+
+    //   >.section-codes {
+    //     margin-left: 15px;
+    //   }
+    // }
+
+    // .amada-inline {
+    //   display: inline-block;
+    // }
     
 
-    .line-item {
-      display: block;
-      width: 100%;
-      height: $line-height;
 
-      .line-header  {
-        display: inline-block;
-      }
-      .line-codes {
-        display: inline-block;
-      }
-
-      .line-footer {
-        display: inline-block;
-      }
-
-    }
-
-
-
-    .inline-item {
-      display: inline-block;
-      line-height: $line-height;
-
-      .inline-header  {
-        display: inline-block;
-      }
-      .inline-codes {
-        display: inline-block;
-      }
-
-      .inline-footer {
-        display: inline-block;
-      }
-    }
 
    
   }

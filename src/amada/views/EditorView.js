@@ -1,79 +1,16 @@
 import View from "../View";
 import PartView from "./PartView";
-import Part from "../../code/Part";
+import { source } from "common-tags";
+// import Part from "../../code/Part";
+
+function is_alphanum(key) {
+  // console.log(key.key.length, key.ctrlKey, key);
+  return key.key.length == 1;
+  // return key.is
+}
 
 //TODO: ONLY WORKS with +1, -1 parameters
-
-function get_nearest_next(code) {
-  let parent = code.parent;
-  let index = parent.codes.indexOf(code) + 1;
-
-  if (index >= parent.codes.length) {
-    return parent instanceof Part
-      ? parent.code_lines[parent.code_lines.length - 1]
-      : get_nearest_next(parent);
-  } else {
-    return parent.codes[index];
-  }
-}
-
-function get_nearest_prev(code) {
-  let index = code.parent.codes.indexOf(code) - 1;
-  let parent = code.parent;
-  if (index < 0) {
-    return parent instanceof Part ? code : parent;
-  } else {
-    let c = parent.codes[index];
-    while (c.codes.length > 0) {
-      c = c.codes[c.codes.length - 1];
-    }
-    return c;
-  }
-}
-
-function get_next(code, pos) {
-  //next code in the insert
-  let c = code;
-  if (pos > 0) {
-    for (let i = 0; i < pos; i++) {
-      if (c.codes.length > 0) {
-        c = c.codes[0];
-      } else {
-        c = get_nearest_next(c);
-      }
-    }
-  } else {
-    for (let i = pos; i < 0; i++) {
-      c = get_nearest_prev(c);
-    }
-  }
-  return c;
-}
-
-function get_down(code, pos) {
-  let parent = code.parent;
-
-  if (parent == undefined) return code;
-
-  let index = parent.codes.indexOf(code);
-  let ind = index + pos;
-
-  if (ind < 0) {
-    return parent instanceof Part ? code : parent;
-    // we need to go to the first of the position
-  }
-  if (ind > parent.codes.length - 1) {
-    // return get_next(parent, 1);
-    if (code.codes.length > 0) {
-      return code.codes[0];
-    }
-    return get_nearest_next(code);
-    //we need to go to further parent
-    // return get_next();
-  }
-  return parent.codes[ind];
-}
-
+// const re = /^[a-zA-Z0-9]$/;
 /**
  * This is CodeViews with all information about current line
  * current position, current code and current section.
@@ -86,66 +23,242 @@ export default class EditorView extends View {
   }
 
   constructor(
+    amada,
     id,
     file,
     part_id = "" //<- current part for the view
   ) {
-    super(id, file.name, "edit");
+    super(amada, id, file.name, "view");
+    // this.amada = amada;
 
     this.file = file;
     this.part_views = {};
 
     for (let p of file.parts) {
-      this.part_views[p.name] = new PartView(this, p);
+      this.part_views[p.name] = new PartView(this, p, file.schema.template); //<- default template for the schema
     }
 
     if (part_id != "") {
-      this.part_view = this.part_views[part_id];
+      this.set_part_view_id(part_id);
+      // this.part_view = this.part_views[part_id];
     } else if (Object.keys(this.part_views).length > 0) {
-      this.part_view = this.part_views[Object.keys(this.part_views)[0]];
+      this.set_part_view_id(Object.keys(this.part_views)[0]);
     } else {
+      this.part_view_id = "amada-preview";
       this.part_view = {};
+    }
+
+    this.__previous_mode = this.mode;
+    this.code_preview = "";
+  }
+
+  get lang() {
+    // console.log(this.schema);
+    return this.schema.lang;
+  }
+
+  get schema() {
+    return this.file.schema;
+  }
+
+  //
+  save() {
+    this.file.save();
+    // console.log("A", this.file.preview());
+  }
+
+  set_part_view_id(val) {
+    this.part_view_id = val;
+    this.part_view = this.part_views[val];
+
+    // if (val == "amada-preview") {
+    //   this.__previous_mode = this.mode;
+    //   this.set_mode_preview();
+    // } else {
+    //   this.set_mode_view();
+    // }
+  }
+
+  // get part_view_id() {
+  //   return this.part_view.name;
+  // }
+
+  // set part_view_id(val) {
+  //   // console.log("Set ID to", val);
+
+  // }
+
+  set_mode_edit(source_event, amada, par) {
+    this.editor();
+    let pv = this.part_view;
+
+    if (!pv.cursor_code.has_value) {
+      this.rename();
+      return;
+    }
+    this.mode = "edit";
+    pv.cursor_code_set(amada, true, pv.cursor_code, pv.cursor_code.val_id, 0);
+  }
+
+  set_mode_view() {
+    this.editor();
+    this.mode = "view";
+    // this.part_view.set_mode(par);
+  }
+
+  editor() {
+    if (this.part_view_id == "amada-preview") {
+      this.part_view_id = Object.keys(this.part_views)[0];
     }
   }
 
-  get part_view_id() {
-    return this.part_view.name;
+  preview() {
+    this.part_view.preview_visible = !this.part_view.preview_visible;
+    this.code_preview = this.file.preview();
   }
 
-  set part_view_id(val) {
-    this.part_view = this.part_views[val];
+  preview_update() {
+    this.code_preview = this.file.preview();
+  }
+
+  set_mode_preview() {
+    // this.mode = "preview";
+    // this.code_preview = this.file.preview();
+  }
+
+  set_mode(source_event, amada, par) {
+    switch (par) {
+      case "edit":
+        this.set_mode_edit(source_event, amada, par);
+        break;
+      case "view":
+        this.set_mode_view(source_event, amada, par);
+        break;
+    }
+  }
+
+  key(source_event, amada, par) {
+    let pv = this.part_view;
+    if (this.mode == "edit") {
+      if (is_alphanum(source_event)) {
+        pv.add_text(amada, source_event.key);
+      }
+
+      // console.log("key", source_event);
+      switch (source_event.key) {
+        case "Backspace":
+          pv.back_text(amada);
+          break;
+        case "Delete":
+          pv.del_text(amada);
+          break;
+        case "Enter":
+          pv.add_text(amada, "\n");
+          break;
+      }
+    }
+  }
+
+  cursor_go(source_event, amada, pos) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+    pv.cursor_code_pos(amada, pos);
+  }
+
+  cursor_up(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+    pv.cursor_prev_line(amada, pv.cursor_pos);
+  }
+
+  cursor_down(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+
+    pv.cursor_next_line(amada, pv.cursor_pos);
+  }
+
+  cursor_next(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+
+    pv.cursor_code_pos(amada, pv.cursor_pos + par);
+  }
+
+  cursor_prev(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+
+    pv.cursor_code_pos(amada, pv.cursor_pos - par);
+  }
+
+  rename(source_event, amada, par) {
+    console.log("rename");
+  }
+
+  cursor_last_in_line(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+
+    pv.cursor_last_in_line(amada, pv.cursor_pos);
+    // return true;
+  }
+
+  cursor_first_in_line(source_event, amada, par) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+
+    pv.cursor_first_in_line(amada, pv.cursor_pos);
+    // return true;
+  }
+
+  __go(amada, par, func) {
+    let pv = this.part_view;
+    if (pv.cursor_code == undefined) return;
+    let code = pv.cursor_code;
+    for (let i = 0; i < par; i++) code = code[func](); // get_next(pv.cursor_code, par); //get first
+
+    pv.cursor_code_set(
+      amada,
+      code.has_value,
+      code,
+      code.has_value ? code.val_id : code.key_id,
+      0
+    );
   }
 
   next(source_event, amada, par) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-    let code = pv.cursor_code;
-    for (let i = 0; i < par; i++) code = code.next(); // get_next(pv.cursor_code, par); //get first
-    pv.cursor_code_set(amada, code);
+    this.__go(amada, par, "next_select");
   }
 
   prev(source_event, amada, par) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-
-    let code = pv.cursor_code;
-    for (let i = 0; i < par; i++) code = code.prev(); // get_next(pv.cursor_code, par); //get first
-    pv.cursor_code_set(amada, code);
+    this.__go(amada, par, "prev_select");
   }
-
   down(source_event, amada, par) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-
-    let code = pv.cursor_code.down(par); // get_next(pv.cursor_code, par); //get first
-    pv.cursor_code_set(amada, code);
+    this.__go(amada, par, "down_select");
   }
 
   up(source_event, amada, par) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
+    this.__go(amada, par, "up_select");
+  }
 
-    let code = pv.cursor_code.up(par); // get_next(pv.cursor_code, par); //get first
-    pv.cursor_code_set(amada, code);
+  next_item(source_event, amada, par) {
+    this.__go(amada, par, "next_item");
+  }
+
+  prev_item(source_event, amada, par) {
+    this.__go(amada, par, "prev_item");
+  }
+
+  down_item(source_event, amada, par) {
+    this.__go(amada, par, "down_item");
+  }
+
+  up_item(source_event, amada, par) {
+    this.__go(amada, par, "up_item");
+  }
+
+  toJSON() {
+    return [this.id, this.file, this.part_id];
   }
 }

@@ -35,13 +35,26 @@ export default class File {
     return this.path;
   }
 
+  preview(generator_id = "") {
+    if (generator_id == "") return this.schema.preview(this);
+    else return this.schema.preview(this, generator_id);
+  }
+
+  /***
+   * Save json file, and all codes inside
+   */
+  save() {
+    let text = this.schema.preview(this);
+    console.log(text);
+  }
+
   toJSON() {
     return {
       name: this.name,
       file_name: this.file_name,
       file_ext: this.file_ext,
-      schema: this.schema.id,
-      parts: this.parts
+      schema: this.schema.id
+      // parts: this.parts
     };
   }
 }

@@ -1,5 +1,6 @@
 export default class View {
-  constructor(id, name, mode = "") {
+  constructor(amada, id, name, mode = "") {
+    this.amada = amada;
     this.id = id;
     this.name = name;
     this.mode = mode;
@@ -14,6 +15,8 @@ export default class View {
   mode_is(name) {
     return this.mode.startsWith(name);
   }
+
+  key(source_event, amada, par) {}
 
   run(source_event, amada, action) {}
 

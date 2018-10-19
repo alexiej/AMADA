@@ -10,12 +10,13 @@ export const file_actions = {
     }
 
     let file = await this.$amada.file_get(path);
-    let editor_view = new EditorView(id, file);
+    let editor_view = new EditorView(this.$amada, id, file);
+    editor_view.amada = this;
 
     context.commit("editor_view_add", editor_view);
     context.commit("editor_view_set", editor_view);
 
-    this.$amada.$router.push("/"); //move to the amada edit file
+    this.$amada.$router.push("./"); //move to the amada edit file
     this.$amada.$emit("file_open", editor_view);
   }
 };

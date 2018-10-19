@@ -10,11 +10,13 @@ import { views } from "./amada/views";
 export const amada = new Vue({
   data() {
     return {
+      counter: 0,
       components: {}
     };
   },
   created() {
-    window.addEventListener("keypress", this.key_press);
+    // window.addEventListener("keypress", this.key_press);
+    window.addEventListener("keydown", this.key_press);
   },
   router,
   store,
@@ -32,6 +34,11 @@ export const amada = new Vue({
     components_connect(component, view) {
       view._component_id = component._uid;
       this.components[component._uid] = component;
+    },
+
+    get_id() {
+      this.counter += 1;
+      return this.counter;
     }
   }
 });

@@ -4,8 +4,11 @@
 <script>
 var ace = require("brace");
 require("brace/mode/javascript");
+require("brace/mode/html");
 require("brace/theme/monokai");
 require("brace/theme/dracula");
+require("brace/theme/eclipse");
+require("brace/theme/xcode");
 
 export default {
   props: ["name", "content", "lang", "theme"],
@@ -30,6 +33,11 @@ export default {
     this.editor.getSession().setMode("ace/mode/javascript");
     this.editor.setTheme("ace/theme/monokai");
     this.editor.setValue(this.content, 1);
+    this.editor.setOptions({
+    readOnly: false,
+    highlightActiveLine: false,
+    highlightGutterLine: false
+});
 
     // mode-xxx.js or theme-xxx.jsがある場合のみ有効
     this.editor.getSession().setMode(`ace/mode/${lang}`);
