@@ -1,4 +1,5 @@
 import { closingTagAncestorBreakers } from "himalaya/lib/tags";
+import { insertArrayAt } from "../../code/__helpers";
 
 const view_class = [
   "view-group",
@@ -12,9 +13,6 @@ function emptyif(text) {
   if (text === undefined || text == "") return "";
   return text;
 }
-
-// function get_text(key, value) {
-// }
 
 export const VIEW_GROUP = -1;
 export const VIEW_PROPERTY = 0;
@@ -47,21 +45,12 @@ export class CodeView {
     template,
     type,
 
-    // key_type = SOURCE_TEXT, //<-function or the
-    // value_type = SOURCE_VAL, //<-source type val
-    // display_key,
-    // display_value,
-    // display_prefix = "",
-    // display_suffix = "",
-    // display_between = "",
-
     component_class,
     component_name = "amada-code",
     is_select = true
   }) {
     this.id = id;
-    this.key_id = id + "/key";
-    this.val_id = id + "/val";
+
     this.part_view = part_view;
 
     this.parent = undefined;
@@ -82,31 +71,137 @@ export class CodeView {
 
     this.is_select = is_select;
 
-    if (this.type == VIEW_PROPERTY) {
+    if (this.is_property) {
       this.__defineGetter__("header", this.header_property);
     }
 
-    // this.header_key = _keyval(
-    //   this.header.key_type,
-    //   this.header.display_key,
-    //   value
-    // );
-    // this.header_val = _keyval(
-    //   this.header.value_type,
-    //   this.header.display_value,
-    //   value
-    // );
+    this.val_id = id + "/" + this.header.display_val;
+    this.key_id = id + "/" + this.header.display_key;
+    this.edit_key = this.header.display_val;
+  }
 
-    // this.footer_key = _keyval(
-    //   this.footer.key_type,
-    //   this.footer.display_key,
-    //   value
-    // );
-    // this.footer_val = _keyval(
-    //   this.footer.value_type,
-    //   this.footer.display_value,
-    //   value
-    // );
+  __find_first_select(code_views) {
+    for (let i = 0; i < code_views.length; i++) {
+      if (code_views[i].is_select) return code_views[i];
+    }
+  }
+
+  __find_last_select(code_views) {
+    for (let i = code_views.length - 1; i >= 0; i--) {
+      if (code_views[i].is_select) return code_views[i];
+    }
+  }
+
+  delete(code_view, include_children) {
+    let parent = code_view.parent;
+    let i = parent.codes.indexOf(code_view);
+    let iv = parent.code_views.indexOf(code_view);
+
+    if (code_view.prev) {
+      code_view.prev.next = code_view.next;
+    }
+    if (code_view.next) {
+      code_view.next.prev = code_view.prev;
+    }
+
+    parent.codes.splice(i, 1);
+    parent.code_views.splice(i, 1);
+
+    if (!include_children) {
+      if (!include_children) {
+        let codes = code_view.codes;
+        if (codes.length > 0) {
+          if (code_view.prev) {
+            let fs = this.__find_first_select(codes);
+            if (fs) {
+              fs.prev = code_view.prev;
+              code_view.prev.next = fs;
+            }
+          }
+          if (code_view.next) {
+            let ls = this.__find_last_select(codes);
+            if (ls) {
+              ls.next = code_view.next;
+              code_view.next.prev = ls;
+            }
+          }
+        }
+
+        for (let c of codes) c.parent = this;
+        insertArrayAt(parent.codes, i, code_view.codes);
+      }
+    }
+    // console.log(code_view.parent.infod);
+  }
+
+  mode_edit() {
+    this.edit_key = this.header.display_val;
+  }
+
+  mode_rename() {
+    if (this.is_property) {
+      this.edit_key = this.header.display_key;
+    }
+  }
+
+  get has_edit() {
+    return this.edit_key != "";
+  }
+
+  get edit_text() {
+    return this.value[this.edit_key];
+  }
+
+  set edit_text(val) {
+    this.value[this.edit_key] = val;
+  }
+
+  get edit_id() {
+    return this.id + "/" + this.edit_key;
+  }
+
+  add_before(before, code_view) {
+    let prev = before.prev;
+
+    before.prev = code_view;
+    code_view.next = before;
+    code_view.prev = prev;
+    code_view.parent = this;
+
+    if (prev) prev.next = code_view;
+
+    this.codes.splice(this.codes.indexOf(before), 0, code_view);
+    this.code_views.splice(this.code_views.indexOf(before), 0, code_view);
+  }
+
+  add_after(after, code_view) {
+    let next = after.next;
+
+    after.next = code_view;
+    code_view.prev = after;
+    code_view.next = next;
+    code_view.parent = this;
+
+    if (next) next.prev = code_view;
+
+    this.codes.splice(this.codes.indexOf(after) + 1, 0, code_view);
+    this.code_views.splice(this.code_views.indexOf(after) + 1, 0, code_view);
+  }
+
+  replace(new_val, old_val) {
+    new_val.next = old_val.next;
+    new_val.prev = old_val.prev;
+    new_val.parent = this;
+
+    if (new_val.next) {
+      new_val.next.prev = new_val;
+    }
+    if (new_val.prev) {
+      new_val.prev.next = new_val;
+    }
+
+    this.codes.splice(this.codes.indexOf(old_val), 1, new_val);
+    this.code_views.splice(this.code_views.indexOf(old_val), 1, new_val);
   }
 
   add(code) {
@@ -131,12 +226,16 @@ export class CodeView {
     this.code_views.push(code);
   }
 
-  get display() {
-    return this.type == VIEW_PROPERTY ? this.property : this.header;
+  allowed() {
+    return this.code.allowed();
   }
 
   get model() {
     return this.code.model;
+  }
+
+  get is_property() {
+    return this.type == VIEW_PROPERTY;
   }
 
   get is_last() {
@@ -149,10 +248,6 @@ export class CodeView {
 
   get header() {
     return this.template.header;
-  }
-
-  get display_all() {
-    return this.display_key != undefined ? this.display_key : this.display_val;
   }
 
   get display_key() {
@@ -191,26 +286,12 @@ export class CodeView {
     return this.code.has_codes;
   }
 
-  set_val(text) {
-    this.value[this.header.display_val] = text;
-    // console.log(this);
-    // this.code.set_value(, text);
-  }
-
-  set_key(text) {
-    this.value[this.header.display_key] = text;
-    // this.code.set_value(this.header.dkkisplay_key, text);
-  }
-
   get has_value() {
-    // console.log(
-    //   this,
-    //   "has_value",
-    //   this.header.display_val,
-    //   "A",
-    //   this.header.display_val != ""
-    // );
     return this.header.display_val != "";
+  }
+
+  get has_key() {
+    return this.header.display_key != "";
   }
 
   get has_display_prefix() {
@@ -233,16 +314,6 @@ export class CodeView {
     return this.display_value != "";
   }
 
-  // get show_key() {
-  //   return this.key_type ? this.value[this.display_key] : this.display_key;
-  // }
-
-  // get show_value() {
-  //   return this.value_type
-  //     ? this.value[this.display_value]
-  //     : this.display_value;
-  // }
-
   get is_section() {
     return this.type == VIEW_SECTION;
   }
@@ -262,25 +333,6 @@ export class CodeView {
 
   get code_class() {
     return view_class[this.type + 1];
-  }
-
-  get_line() {
-    if (this.is_line) return this;
-    if (this.type == VIEW_SECTION) {
-      for (let c of this.code_views) {
-        if (c.is_line) return c;
-        let ci = c.get_line();
-        if (ci) return ci;
-      }
-      //that's mean that our children are lines
-    } else {
-      let p = this.parent;
-      if (p != undefined) {
-        return p.get_line();
-      }
-    }
-    return undefined;
-    // return this;
   }
 
   get nearest_block() {
@@ -443,6 +495,7 @@ export class CodeView {
   next_line() {
     let c = this;
     let next = this.next_select();
+
     while ((next != undefined) & (c != next) & !next.is_block) {
       c = next;
       next = c.next_select();
@@ -460,6 +513,7 @@ export class CodeView {
     if (this.prev) {
       // if (this.prev.is_select) return this.prev;
       let ci = this.prev.last_select();
+
       if (ci) return ci;
     }
 
@@ -480,6 +534,8 @@ export class CodeView {
     }
 
     let next = this.next_line(); //current line
+
+    // console.log(next.edit_id, next);
     // let next = line.next_select(false);
     if (next != undefined) {
       return next;
@@ -507,7 +563,15 @@ export class CodeView {
     return this.code.toJSON();
   }
 
-  toString() {
-    return this.template;
+  get info() {
+    return this.model.name + "/" + this.edit_text.substr(0, 10);
+  }
+
+  get infod() {
+    let t = this.info;
+    for (let cv of this.code_views) {
+      t += "\n  " + cv.infod.replace("\n  ", "\n    ");
+    }
+    return t;
   }
 }

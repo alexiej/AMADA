@@ -4,7 +4,7 @@ $line-height: 24px;
   background: white;
 
   position: relative;
-  // display: flex;
+  display: flex;
   // flex-wrap: nowrap;
   padding: 0;
   width: 100%; 
@@ -17,18 +17,8 @@ $line-height: 24px;
   font-family: Consolas, "Courier New", monospace;
   font-size: 18px;
   
-
-
   .ace_editor  {
-    width: 50% !important;
     height: 100%;
-
-
-// display: block !important;
-// display: none;
-    // position: relative;
-  //  flex: 1 1 100%;
-
   }
 
   .amada-lines {
@@ -42,17 +32,9 @@ $line-height: 24px;
     }
   }
 
-
-
   .amada-content {
-    width: 100%;
     height: 100%;
-    
     position: relative;
-
-    .amada-code {
-      display: block !important;
-    }
 
     .key {
       position: relative;
@@ -75,10 +57,7 @@ $line-height: 24px;
         margin-left: 15px;
       }
 
-
     }
-
-
 
     .view-value {
       display: inline-block;
@@ -99,25 +78,6 @@ $line-height: 24px;
     .view-group {
       display: inline-block;
     }
-    // .amada-line {
-    //   display: block;
-    // }
-
-    // .amada-section {
-    //   display: block;
-
-    //   >.section-codes {
-    //     margin-left: 15px;
-    //   }
-    // }
-
-    // .amada-inline {
-    //   display: inline-block;
-    // }
-    
-
-
-
    
   }
 

@@ -3,7 +3,6 @@ module.exports = {
     mocha: true
   },
   rules: {
-    'import/no-extraneous-dependencies': 'off',
-    "no-unused-vars": 'off'
+    'import/no-extraneous-dependencies': 'off'
   }
 }

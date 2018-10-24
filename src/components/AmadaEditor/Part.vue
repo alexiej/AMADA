@@ -22,6 +22,7 @@
 import ace from "../ace/ace";
 // import Codes from './Codes';
 import { __isempty } from "../../__helpers.js";
+import Vue from 'vue';
 
 function getTextWidth(text, font) {
   // if given, use cached canvas for better performance
@@ -104,19 +105,25 @@ export default {
       if (element == undefined) return;
     },
 
-    cursor_to_code(code, id, text, pos = 0) {
-    
-     
-      var element = document.getElementById(id);
-      if (element == undefined) return;
+    cursor_to_code(code_view, pos = 0) {
+      var v = this;
+      Vue.nextTick(function() {
+         var element = document.getElementById(code_view.edit_id);
+         if (element == undefined) return;
 
-      var cursor = this.$refs["cursor"];
-      element.textContent = text.substr(0, pos); //text.substr(0, pos);
-      element.appendChild(cursor.$el);
-      element.appendChild(document.createTextNode(text.substr(pos)));
-      this.$el.scrollTop = cursor.$el.offsetTop - 5 * this.lineSize;
-      this.$el.scrollLeft = cursor.$el.offsetLeft - 155;
+        let text = code_view.edit_text;
 
+        element.textContent =  text.substr(0, pos); //text.substr(0, pos);
+        var cursor = v.$refs["cursor"];
+        element.appendChild(cursor.$el);
+  
+        element.appendChild(document.createTextNode(text.substr(pos)));
+        v.$el.scrollTop = cursor.$el.offsetTop - 5 * v.lineSize;
+        v.$el.scrollLeft = cursor.$el.offsetLeft - 155;
+
+      })
+      // this.next
+      // var element = document.getElementById(code_view.edit_id);
     },
 
     scroll_to_code(code) {}

@@ -14,6 +14,7 @@ Vue.use(ElementUI);
 
 // console.log(store.state.project);
 // console.log(store.state.project);
+// console.log(amada);
 
 let editor_view = new EditorView(amada, "editor/-", store.state.project.file); //empty editor view
 // console.log(editor_view);

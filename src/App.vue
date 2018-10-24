@@ -52,6 +52,7 @@ import Vue from "vue";
 import { toggleDev } from "./electron.js";
 
 import Code from "./components/AmadaEditor/Code";
+import Content from "./components/AmadaEditor/Content";
 import Ace from "./components/ace/ace";
 import Cursor from "./components/AmadaEditor/Cursor";
 // import Inline from "./components/AmadaEditor/Inline";
@@ -60,6 +61,7 @@ import Cursor from "./components/AmadaEditor/Cursor";
 // import Group from "./components/AmadaEditor/Group.vue";
 
 Vue.component("amada-code", Code);
+Vue.component("amada-content", Content);
 Vue.component("amada-cursor", Cursor);
 Vue.component("amada-ace", Ace);
 // Vue.component('amada-line', Line)
@@ -96,9 +98,9 @@ export default {
     let path ='C:\\\PUBLIC\\\PROJECTS-FINAL\\\amada\\test\\index.html';
     await this.$amada.file_open(path);
     this.$amada.editor_view.down(undefined,this.$amada,8);
-    this.$amada.editor_view.preview();
+    // this.$amada.editor_view.preview();
     
-    console.log("App.vue: ", path, this.$amada.editor_view);
+    // console.log("App.vue: ", path, this.$amada.editor_view);
 
     // console.log(this.$amada.editor_view)
 

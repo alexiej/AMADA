@@ -1,66 +1,40 @@
 import Schema from "../Schema.js";
 import { Model } from "../Model";
-import {
-  TEMPLATE_SECTION,
-  TEMPLATE_LINE,
-  TEMPLATE_INLINE,
-  TEMPLATE_GROUP,
-  Template
-} from "../Template.js";
+import { Template } from "../Template.js";
 
-export function models_default(models = []) {
-  models.push(
-    new Model({
-      id: "line",
-      name: "line",
-      view_id: "line",
-      generator_id: "line",
-      has_value: true
-    })
-  ); //, "line", "amada-line", MODEL_LINE));
-  models.push(
-    new Model({
-      id: "inline",
-      name: "inline",
-      view_id: "inline",
-      generator_id: "inline"
-    })
+import {
+  VIEW_GROUP,
+  VIEW_LINE,
+  VIEW_SECTION,
+  VIEW_TEXT
+} from "../../amada/views/CodeView";
+
+export function get_model_schema(name, schema = {}) {
+  let oa = Object.assign(
+    {
+      id: name,
+      name: name,
+      view_id: name,
+      generator_id: name,
+      description: name,
+      allowed: parent => Object.keys(parent.schema.models)
+    },
+    schema
   );
-  models.push(
-    new Model({
-      id: "text",
-      name: "text",
-      view_id: "text",
-      generator_id: "text"
-    })
+  let m = new Model(oa);
+  return m;
+}
+
+export function models_default(models = {}) {
+  models["line"] = get_model_schema("line", models["line"]); //, "line", "amada-line", MODEL_LINE));
+  models["inline"] = get_model_schema("inline", models["inline"]);
+  models["text"] = get_model_schema("text", models["text"]);
+  models["section-part"] = get_model_schema(
+    "section-part",
+    models["section-part"]
   );
-  models.push(
-    new Model({
-      id: "section-part",
-      name: "section-part",
-      view_id: "section-part",
-      generator_id: "section-part",
-      has_value: false
-    })
-  );
-  models.push(
-    new Model({
-      id: "group",
-      name: "group",
-      view_id: "group",
-      generator_id: "group",
-      has_value: false
-    })
-  );
-  models.push(
-    new Model({
-      id: "section",
-      name: "section",
-      view_id: "section",
-      generator_id: "section",
-      has_value: false
-    })
-  );
+  models["group"] = get_model_schema("group", models["group"]);
+  models["section"] = get_model_schema("section", models["section"]);
 
   return models;
 }
@@ -87,22 +61,17 @@ export function templates_default(templates = {}) {
   Object.assign(templates, {
     text: new Template({
       component_class: "text",
-      type: TEMPLATE_INLINE,
+      view_type: VIEW_GROUP,
       is_select: true
     }),
-    inline: new Template({
-      component_class: "inline",
-      type: TEMPLATE_INLINE,
-      is_select: true
-    }),
-    line: new Template({
-      component_class: "line",
-      type: TEMPLATE_LINE,
+    content: new Template({
+      component_class: "content",
+      component_name: "amada-content",
+      view_type: VIEW_LINE,
       is_select: true,
       header: {
         is_visible: true,
         prefix: "",
-        display_key: "",
         display_val: "value",
         suffix: ""
       },
@@ -110,19 +79,36 @@ export function templates_default(templates = {}) {
         is_visible: false
       }
     }),
-
-    value: new Template({
-      component_class: "value",
-      type: TEMPLATE_LINE,
+    inline: new Template({
+      component_class: "inline",
+      view_type: VIEW_GROUP,
+      is_select: true
+    }),
+    line: new Template({
+      component_class: "line",
+      view_type: VIEW_LINE,
+      is_select: true,
+      header: {
+        is_visible: true,
+        prefix: "",
+        display_val: "value",
+        suffix: ""
+      },
+      footer: {
+        is_visible: false
+      }
+    }),
+    key: new Template({
+      component_class: "key",
+      view_type: VIEW_LINE,
       is_select: true,
       header: {
         is_visible: true,
         prefix: "",
 
-        display_key: "key",
-        between: ": ",
+        between: "",
         display_val: "value",
-        suffix: ""
+        suffix: ": "
       },
 
       footer: {
@@ -131,54 +117,48 @@ export function templates_default(templates = {}) {
     }),
     section: new Template({
       component_class: "section",
-      type: TEMPLATE_SECTION,
+      view_type: VIEW_SECTION,
       is_select: true,
       header: {
         is_visible: true,
         prefix: "",
-
-        display_key: "key",
-
+        display_val: "value",
         suffix: ""
       },
 
       footer: {
         is_visible: false,
         prefix: "/",
-        display_key: "key",
-        display_val: "",
+        display_val: "value",
         suffix: ""
       }
     }),
     comment: new Template({
       component_class: "comment",
-      type: TEMPLATE_SECTION,
+      component_name: "amada-content",
+      view_type: VIEW_SECTION,
       is_select: true,
       header: {
         is_visible: true,
         prefix: "",
         suffix: "",
-        display_key: "",
         display_val: "value"
       },
       footer: {
         is_visible: true,
         prefix: "",
         suffix: ""
-        // display_value: ""
       }
     }),
     "section-part": new Template({
       component_class: "section-part",
-      type: TEMPLATE_SECTION,
+      view_type: VIEW_SECTION,
       is_select: true,
       header: {
         is_visible: true,
         prefix: "",
         suffix: "",
         display_value: ""
-        // display_key: key => key,
-        // display_value: ""
       },
       footer: {
         is_visible: true,

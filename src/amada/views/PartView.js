@@ -55,13 +55,50 @@ export default class PartView {
     // let cc = this.codes.length > 0 ? this.codes[0] : undefined;
     let cc = this.code_view.next_select();
     this.cursor_code = cc;
-    this.cursor_is_val = true;
-    this.cursor_id = "";
     this.cursor_pos = 0;
     this.cursor_x = 0; //<current cursor line
     this.cursor_y = 0; //<current cursor position
 
     this.preview_visible = false;
+  }
+
+  delete(code_view, include_children = false) {
+    this.part.delete(code_view.code, include_children);
+    code_view.parent.delete(code_view, include_children);
+  }
+
+  add_after(code_view, code) {
+    let c = this.part.add_after(code_view.code, code);
+    let cv = this.get_view(c);
+    code_view.parent.add_after(code_view, cv);
+    return cv;
+  }
+
+  add_before(code_view, code) {
+    let c = this.part.add_before(code_view.code, code);
+    let cv = this.get_view(c);
+    code_view.parent.add_before(code_view, cv);
+    return cv;
+  }
+
+  replace(new_code, replace_code_view) {
+    this.part.replace(new_code, replace_code_view.code);
+    let new_code_view = this.get_view(new_code);
+    replace_code_view.parent.replace(new_code_view, replace_code_view);
+    return new_code_view;
+  }
+
+  get cursor_text() {
+    return this.cursor_code.edit_text;
+  }
+
+  set cursor_text(val) {
+    this.cursor_code.edit_text = val;
+    this.code_change();
+  }
+
+  get amada() {
+    return this.editor_view.amada;
   }
 
   get_id() {
@@ -96,19 +133,8 @@ export default class PartView {
     ].join("");
     // console.log(text);
 
-    this.set_text(text2);
+    this.cursor_text = text2;
     this.cursor_code_pos(amada, this.cursor_pos + 1);
-    this.code_change();
-  }
-
-  set_text(text) {
-    if (this.cursor_is_val) {
-      this.cursor_code.set_val(text);
-      // this.cursor_pos += 1;
-    } else {
-      this.cursor_code.set_key(text);
-    }
-    this.cursor_text = text;
     this.code_change();
   }
 
@@ -118,7 +144,7 @@ export default class PartView {
     if ((this.cursor_pos > 0) & (a.length > 0)) {
       a = a.slice(0, this.cursor_pos - 1) + a.slice(this.cursor_pos);
 
-      this.set_text(a);
+      this.cursor_text = a;
       this.cursor_code_pos(amada, this.cursor_pos - 1);
     }
     this.code_change();
@@ -129,7 +155,7 @@ export default class PartView {
 
     if ((this.cursor_pos < this.cursor_text.length) & (a.length > 0)) {
       a = a.slice(0, this.cursor_pos) + a.slice(this.cursor_pos + 1);
-      this.set_text(a);
+      this.cursor_text = a;
       this.cursor_code_pos(amada, this.cursor_pos);
     }
     this.code_change();
@@ -139,8 +165,6 @@ export default class PartView {
     let next_enter = __get_next_line_pos(this.cursor_text, pos);
 
     if (next_enter > 0) {
-      // debugger;
-      // console.log({ next_enter, x: this.cursor_x, second_enter });
       let second_enter = __get_next_line_pos(this.cursor_text, next_enter);
 
       next_enter += this.cursor_x;
@@ -201,60 +225,36 @@ export default class PartView {
       if (prev_enter >= curr_enter) {
         prev_enter = curr_enter - 1;
       }
-
-      // console.log({ pos, prev_enter, x: this.cursor_x }, "1st line");
-      // if(prev_enter >)
-      // let second_enter = __get_prev_line_pos(this.cursor_text, prev_enter - 1);
-      // second_enter = second_enter < -1 ? 0 : second_enter;
-      // second_enter += start_pos;
-      // second_enter = second_enter > prev_enter ? prev_enter : second_enter;
-
-      this.cursor_code_pos(amada, prev_enter);
+      this.cursor_code_pos(this.amada, prev_enter);
     }
   }
 
   cursor_code_pos(amada, pos = 0) {
-    // debugger;
-    pos =
-      pos > this.cursor_text.length
-        ? 0
-        : pos < 0
-          ? this.cursor_text.length
-          : pos;
+    if (!this.cursor_text) return;
+    else {
+      pos =
+        pos > this.cursor_text.length
+          ? 0
+          : pos < 0
+            ? this.cursor_text.length
+            : pos;
+    }
 
     this.cursor_pos = pos;
     this.cursor_y = __get_cursor_line(this.cursor_text, this.cursor_pos);
     this.cursor_x =
       this.cursor_pos - __get_prev_line_pos(this.cursor_text, this.cursor_pos);
-    // console.log("prev", __get_prev_line_pos(this.cursor_text, this.cursor_pos));
 
     console.log({ pos, x: this.cursor_x, y: this.cursor_y });
-    // this.cursor_pos = pos < 0 ? this.cursor_text.length - 1 : pos;
-    // console.log(pos, this.cursor_pos);
 
-    let component = amada.components[this._component_id];
+    let component = this.amada.components[this._component_id];
     if (component == undefined) return;
-    component.cursor_to_code(
-      this.cursor_code,
-      this.cursor_id,
-      this.cursor_text,
-      this.cursor_pos
-    );
+    component.cursor_to_code(this.cursor_code, this.cursor_pos);
   }
 
-  __cursor_set_text(is_val, code) {
-    this.cursor_text = is_val ? code.display_val : code.display_key;
-    this.cursor_text = this.cursor_text == undefined ? "" : this.cursor_text;
-    // this.cursor_text = this.cursor_text.trim();
-  }
-
-  cursor_code_set(amada, is_val, code, id = "", pos = 0) {
-    // this.top = code.line;
-    this.cursor_line = code.nearest_line;
+  cursor_code_set(amada, code, pos = 0) {
     this.cursor_code = code;
-    this.cursor_is_val = is_val;
-    this.cursor_id = id;
-    this.__cursor_set_text(is_val, code);
+
     this.cursor_code_pos(amada, pos);
   }
 
@@ -270,7 +270,6 @@ export default class PartView {
       let view = this.template[code.view_id];
       let code_view = view.get_view(code, this);
       return code_view;
-      // console.log("PartView.js", code_view);
     } else {
       return undefined;
     }

@@ -11,7 +11,6 @@ export const file_actions = {
 
     let file = await this.$amada.file_get(path);
     let editor_view = new EditorView(this.$amada, id, file);
-    editor_view.amada = this;
 
     context.commit("editor_view_add", editor_view);
     context.commit("editor_view_set", editor_view);

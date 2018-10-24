@@ -1,6 +1,9 @@
 $primary-color: rgb(166, 22, 238);
 $layout-color: rgba(204, 204, 204, 0.3);
 
+$title-color: rgba(204, 204, 204, 0.1);
+$border-color: rgba($layout-color,0.7);
+
 .cursor {
   background-color: rgba($primary-color,0.3);
   border-left: 1px solid red;
@@ -46,9 +49,14 @@ border-radius: 5px;
   color: blue;
 }
 
+.editor-rename .selected-code{
+  background-color: rgba(255,25,25,.2);
+}
+
 
 .editor-view .selected-code {
   background-color: rgba(0,25,255,.2);
+  
 }
 
 .editor-edit .selected-code {
@@ -95,7 +103,11 @@ border-radius: 5px;
 
   .comment  {
     color: rgba(black,0.5);
-    opacity: 0.8;
+    // opacity: 0.8;
+
+    * {
+      color: rgba(black,0.5);
+    }
     // background: rgba(silver,0.03);
   }
 
@@ -115,12 +127,24 @@ border-radius: 5px;
   }
 }
 
+.key {
+  color: rgba(250,100,200,1.0);
+}
+
+.content {
+  color: blue;
+}
+
+
 .section {
   
   >.header {
     background-color: rgba(255,0,0,0.02);
     color:rgba(250,100,200,1.0);
   }
+
+
+  
 
   >.codes {
     border-left: 1px dashed rgba(red,0.1);
@@ -140,6 +164,28 @@ border-radius: 5px;
 
 
   // background: red;
+}
+
+.ace_gutter {
+  background-color: white;// rgba($primary-color,0.03);
+  border-left: 1px solid rgba($primary-color,0.7);
+  // border-right: 1px solid rgba($primary-color,0.7);
+  // width: 25px !important;
+}
+
+.ace_gutter-layer {
+  background: white;
+}
+
+.amada-properties {
+  border-left: 1px dashed rgba($layout-color,0.7);
+  background: rgba($title-color,0.04);
+
+  .title {
+    background: $title-color;
+    border-bottom: 1px dashed $border-color;
+    // height: 70px;
+  }
 }
 
 // .group {

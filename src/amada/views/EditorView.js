@@ -1,6 +1,7 @@
 import View from "../View";
 import PartView from "./PartView";
 import { source } from "common-tags";
+import { TSThisType } from "babel-types";
 // import Part from "../../code/Part";
 
 function is_alphanum(key) {
@@ -50,6 +51,7 @@ export default class EditorView extends View {
 
     this.__previous_mode = this.mode;
     this.code_preview = "";
+    this.allowed_list = {};
   }
 
   get lang() {
@@ -70,46 +72,124 @@ export default class EditorView extends View {
   set_part_view_id(val) {
     this.part_view_id = val;
     this.part_view = this.part_views[val];
-
-    // if (val == "amada-preview") {
-    //   this.__previous_mode = this.mode;
-    //   this.set_mode_preview();
-    // } else {
-    //   this.set_mode_view();
-    // }
   }
 
-  // get part_view_id() {
-  //   return this.part_view.name;
-  // }
-
-  // set part_view_id(val) {
-  //   // console.log("Set ID to", val);
-
-  // }
-
-  set_mode_edit(source_event, amada, par) {
-    this.editor();
+  set_mode_edit(source_event, amada, par = true) {
     let pv = this.part_view;
 
-    if (!pv.cursor_code.has_value) {
-      this.rename();
-      return;
-    }
+    if (!pv.cursor_code.has_edit) return;
+
     this.mode = "edit";
-    pv.cursor_code_set(amada, true, pv.cursor_code, pv.cursor_code.val_id, 0);
+
+    if (par) {
+      pv.cursor_code.mode_edit();
+    } else {
+      pv.cursor_code.mode_rename();
+    }
+    pv.cursor_code_set(amada, pv.cursor_code, 0);
   }
 
   set_mode_view() {
-    this.editor();
+    let pv = this.part_view;
+    if (pv.cursor_code) pv.cursor_code.mode_edit();
+    pv.cursor_code_set(this.amada, pv.cursor_code, 0);
     this.mode = "view";
-    // this.part_view.set_mode(par);
   }
 
-  editor() {
-    if (this.part_view_id == "amada-preview") {
-      this.part_view_id = Object.keys(this.part_views)[0];
+  get is_allowed() {
+    return this.mode == "rename" || this.mode == "add";
+  }
+
+  allowed_select(ev) {
+    this.set_mode_view();
+    this.allowed_function(ev);
+  }
+
+  set_allowed(list, allowed_function) {
+    // let pv = this.part_view;
+
+    this.allowed_list = list; //pv.cursor_code.parent.allowed();
+    this.allowed_function = allowed_function;
+
+    let component = this.amada.components[this._component_id];
+    if (component == undefined) return;
+
+    component.set_allowed();
+  }
+
+  edit(code_view, pos = 0) {
+    this.part_view.cursor_code_set(this.amada, code_view, 0);
+    this.set_mode_edit({}, this.amada, true);
+  }
+
+  delete(source_event, amada, par) {
+    let pv = this.part_view;
+    if (!pv.cursor_code) return;
+    pv.delete(pv.cursor_code, par);
+    this.next_item(undefined, amada, 1);
+  }
+
+  add_after_function(model) {
+    model.create("_name_");
+    let cv = this.part_view.add_after(this.add_code, model.create("_name_"));
+    this.edit(cv);
+  }
+
+  add_before_function(model) {
+    model.create("_name_");
+    let cv = this.part_view.add_before(this.add_code, model.create("_name_"));
+    this.edit(cv);
+  }
+
+  add_after() {
+    let pv = this.part_view;
+    if (!pv.cursor_code) return;
+    if (!pv.cursor_code.parent) return;
+
+    if (!pv.cursor_code.parent.model.allowed) return;
+
+    this.mode = "add";
+    this.add_code = pv.cursor_code;
+    this.set_allowed(pv.cursor_code.parent.allowed(), this.add_after_function);
+  }
+
+  add_before() {
+    let pv = this.part_view;
+    if (!pv.cursor_code) return;
+    if (!pv.cursor_code.parent) return;
+
+    if (!pv.cursor_code.parent.model.allowed) return;
+    this.mode = "add";
+    this.add_code = pv.cursor_code;
+    this.set_allowed(pv.cursor_code.parent.allowed(), this.add_before_function);
+  }
+
+  replace_function(model) {
+    let rc = this.rename_code;
+    if (!rc) return;
+
+    let cv = this.part_view.replace(model.convert(rc.code), rc);
+    this.edit(cv);
+  }
+
+  replace() {
+    let pv = this.part_view;
+
+    if (!pv.cursor_code) return;
+    if (!pv.cursor_code.parent) return;
+
+    if (pv.cursor_code.is_property) {
+      return this.set_mode_edit(undefined, this.amada, false);
     }
+
+    // console.log(object);
+
+    if (!pv.cursor_code.parent.model.allowed) return;
+
+    this.mode = "rename";
+    this.rename_code = pv.cursor_code;
+
+    this.set_allowed(pv.cursor_code.parent.allowed(), this.replace_function);
   }
 
   preview() {
@@ -121,11 +201,6 @@ export default class EditorView extends View {
     this.code_preview = this.file.preview();
   }
 
-  set_mode_preview() {
-    // this.mode = "preview";
-    // this.code_preview = this.file.preview();
-  }
-
   set_mode(source_event, amada, par) {
     switch (par) {
       case "edit":
@@ -133,6 +208,9 @@ export default class EditorView extends View {
         break;
       case "view":
         this.set_mode_view(source_event, amada, par);
+        break;
+      case "rename":
+        this.set_mode_rename(source_event, amada, par);
         break;
     }
   }
@@ -143,12 +221,11 @@ export default class EditorView extends View {
       if (is_alphanum(source_event)) {
         pv.add_text(amada, source_event.key);
       }
-
-      // console.log("key", source_event);
       switch (source_event.key) {
         case "Backspace":
           pv.back_text(amada);
           break;
+        case "^d":
         case "Delete":
           pv.del_text(amada);
           break;
@@ -192,9 +269,9 @@ export default class EditorView extends View {
     pv.cursor_code_pos(amada, pv.cursor_pos - par);
   }
 
-  rename(source_event, amada, par) {
-    console.log("rename");
-  }
+  // rename(source_event, amada, par) {
+  //   this.set_mode_rename();
+  // }
 
   cursor_last_in_line(source_event, amada, par) {
     let pv = this.part_view;
@@ -217,14 +294,7 @@ export default class EditorView extends View {
     if (pv.cursor_code == undefined) return;
     let code = pv.cursor_code;
     for (let i = 0; i < par; i++) code = code[func](); // get_next(pv.cursor_code, par); //get first
-
-    pv.cursor_code_set(
-      amada,
-      code.has_value,
-      code,
-      code.has_value ? code.val_id : code.key_id,
-      0
-    );
+    pv.cursor_code_set(amada, code, 0);
   }
 
   next(source_event, amada, par) {

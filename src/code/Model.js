@@ -5,13 +5,16 @@ import Code from "./Code";
 // export const MODEL_LINE = -1;
 // export const MODEL_INLINE = 1;
 // export const MODEL_GROUP = 2;
-
 // export const CODE_HEADER = -1;
 // export const CODE_CODES = 0;
 // export const CODE_FOOTER = 1;
 
-const create_const = (model, key, value, properties = [], codes = []) => {
-  return new Code(model, key, value, properties, codes);
+const create_const = (model, value, properties = [], codes = []) => {
+  return new Code(model, value, properties, codes);
+};
+
+const convert_const = (model, code) => {
+  return model.create(code.value, code.properties, code.codes);
 };
 
 /**
@@ -21,29 +24,41 @@ export class Model {
   constructor({
     id,
     name,
+    allowed = undefined,
     view_id = "", //<- default view for the model, name
     generator_id = "code", //<- default generator for the file
     create_function = undefined,
-    is_visible = true,
-    has_value = true
+    convert_function = undefined,
+    is_visible = true
   }) {
     this.schema = undefined;
     this.id = id;
     this.name = name;
-    this.has_value = has_value;
     this.generator_id = generator_id;
+    this.allowed = allowed;
 
     if (create_function != undefined) {
       this.create_function = create_function;
     } else {
       this.create_function = create_const;
     }
+
+    if (convert_function != undefined) {
+      this.convert_function = convert_function;
+    } else {
+      this.convert_function = convert_const;
+    }
+
     this.view_id = view_id;
     this.is_visible = is_visible;
   }
 
   toString() {
     return this.id;
+  }
+
+  convert(code) {
+    return this.convert_function(this, code);
   }
 
   preview(code, generator_id) {
@@ -59,7 +74,7 @@ export class Model {
     return "";
   }
 
-  create(key, value, properties = [], codes = []) {
-    return this.create_function(this, key, value, properties, codes);
+  create(value, properties = [], codes = []) {
+    return this.create_function(this, value, properties, codes);
   }
 }

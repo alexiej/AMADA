@@ -4,14 +4,24 @@ import Code from "../Code.js";
 import {
   models_default,
   templates_default,
-  generators_default
+  generators_default,
+  get_model_schema
 } from "./SchemaDefault";
+
+import { escapeHtml } from "../__helpers";
 
 const fs = require("fs");
 const { promisify } = require("util");
 const readFile = promisify(fs.readFile);
 import { parse } from "himalaya";
 import { Model } from "../Model";
+
+// function ver_regex(regex) {
+//   return function(parent, model, value) {
+//     if (regex.match(value)) return true;
+//     return false;
+//   };
+// }
 
 function __get_properties(code) {
   if (code.properties.length > 0) {
@@ -33,8 +43,12 @@ function get_empty(code, generator_id) {
   return "";
 }
 
+function content_gen(code, generator_id) {
+  return escapeHtml(code.value);
+}
+
 function comment_gen(code, generator_id) {
-  return "<!-- " + code.value + " -->";
+  return "<!-- " + escapeHtml(code.value) + " -->";
 }
 
 function section_get(code, generator_id) {
@@ -52,6 +66,25 @@ function codes_get(code, generator_id) {
   }
   return arr.join("");
 }
+
+const convert_function = (model, code) => {
+  if (
+    ["comment", "content"].indexOf(code.model.id) >= 0 &&
+    ["comment", "content"].indexOf(model.id) < 0
+  ) {
+    return model.create(code.model.name, [], [code]);
+  }
+  return model.create(code.value, code.properties, code.codes);
+};
+
+const convert_content = (model, code) => {
+  return new Code(
+    model,
+    "comment section (" + code.model.name + ")",
+    [],
+    [code]
+  );
+};
 
 const __HTML__SOLIDUS_TAG = { META: true, LINK: true, TITLE: true };
 
@@ -86,13 +119,16 @@ function __get_html_line_code(tag, properties, content) {
 }
 
 function line_gen(code, generator_id) {
-  console.log("code line", code);
-  return __get_html_code(code.key, __get_properties(code), code.value);
+  return escapeHtml(code.value); //, __get_properties(code), code.value);
 }
 
 function tagline_gen(code, generator_id) {
-  console.log("tagline_gen line", code);
-  return __get_html_line_code(code.key, __get_properties(code), code.value);
+  return __get_html_line_code(
+    code.value,
+    __get_properties(code),
+
+    escapeHtml(code.codes[0].value)
+  );
 }
 
 /** Standard generator for code in the file */
@@ -118,21 +154,25 @@ function create_codes(schema, json) {
     switch (tag.type) {
       case "text":
         if (is_empty(tag.content)) continue;
-        codes.push(schema.models["line"].create("line", tag.content));
-        // console.warn("content: ", tag.content);
+        codes.push(schema.models["line"].create(tag.content));
         break;
       case "element":
         if (tag.tagName == "!doctype") continue;
-        tagName = "tag-" + tag.tagName;
+        tagName = tag.tagName;
 
         if (tag.tagName == "title") {
           model = schema.models["tag-line"];
           // console.log(tag.tagName, tag.children[0].content);
           code = model.create(
             tag.tagName,
-            tag.children[0].content.trim(),
             [],
-            []
+            [
+              schema.models["content"].create(
+                tag.children[0].content.trim(),
+                [],
+                []
+              )
+            ]
           );
           codes.push(code);
           continue;
@@ -143,72 +183,79 @@ function create_codes(schema, json) {
         } else {
           model = schema.models["tag"];
         }
-        // switch (tag.tagName) {
-        //   case "title":
-        //     console.log(tag.children[0]);
-        //     model.create(tag.tagName, tag.children[0].content, [], []);
-        //     codes.push(code);
-        //     return;
-        // }
+
         // console.log(tag.type, tagName, tag.children);
         code = model.create(
-          tag.tagName,
           tag.tagName,
           tag.attributes,
           create_codes(schema, tag.children)
         );
-        // console.log(code);
         codes.push(code);
-        // console.log(tag.attributes);
-        // model.crea
-        // console.log(tag, tagName, model);
 
         break;
       case "comment":
         if (is_empty(tag.content)) continue;
-        codes.push(schema.models["comment"].create("comment", tag.content));
+        codes.push(schema.models["comment"].create(tag.content));
         break;
       default:
         console.warn("other", tag);
         break;
     }
-    // if (tag.type == "text") {
-    // }
   }
   return codes;
 }
+
+function allowed(parent) {
+  return ["tag", "tag-line", "content", "comment"];
+}
+
+const all_models = models_default({
+  html: get_model_schema("html", {
+    view_id: "section",
+    allowed: parent => ["head", "body"],
+    convert_function
+  }),
+  body: get_model_schema("body", {
+    view_id: "section",
+    allowed,
+    convert_function
+  }),
+  head: get_model_schema("head", {
+    view_id: "section",
+    allowed,
+    convert_function
+  }),
+  tag: get_model_schema("tag", {
+    view_id: "section",
+    allowed,
+    convert_function
+  }),
+  "tag-line": get_model_schema("tag-line", {
+    name: "line tag",
+    view_id: "key",
+    allowed,
+    convert_function
+  }),
+  content: get_model_schema("content", {
+    convert_function: convert_content
+  }),
+  comment: get_model_schema("comment", {
+    convert_function: convert_content
+  }),
+  section: { name: "HTML Section" },
+  "section-part": {
+    allowed: parent => {
+      return ["html"];
+    }
+  }
+});
 
 export default class SchemaHtml extends Schema {
   constructor() {
     super(
       "html",
       "html",
-      models_default([
-        new Model({
-          id: "tag",
-          name: "tag",
-          view_id: "section",
-          has_value: false
-        }),
-        new Model({
-          id: "tag-line",
-          name: "tag-line",
-          view_id: "value",
-          generator_id: "tag-line",
-          has_value: true
-        }),
-        new Model({
-          id: "comment",
-          name: "comment",
-          view_id: "comment",
-          generator_id: "comment"
-        }),
-        new Model({
-          id: "tag-!doctype",
-          name: "!doctype",
-          view_id: "line"
-        })
-      ]),
+      all_models,
       {
         default: templates_default()
       },
@@ -219,10 +266,12 @@ export default class SchemaHtml extends Schema {
           "section-part": section_get,
           comment: comment_gen,
           line: line_gen,
+          content: content_gen,
           "tag-line": tagline_gen
         })
       }
     );
+    this.preview_default = "html";
   }
 
   async parts_decode(file) {

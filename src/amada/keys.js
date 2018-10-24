@@ -30,10 +30,9 @@ export const keys = {
     // console.log(act);
 
     if (act.prevent) {
-      // console.log("prevent");
       event.preventDefault();
     }
-    event.preventDefault();
+    // event.preventDefault();
 
     // if (!this.view.mode_is(act.mode)) return;
     let target = this.view_get(act.target);

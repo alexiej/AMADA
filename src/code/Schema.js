@@ -6,10 +6,10 @@
  */
 
 export default class Schema {
-  constructor(id, name, models = [], templates = {}, generators = {}) {
+  constructor(id, name, models = {}, templates = {}, generators = {}) {
     this.id = id;
     this.name = name;
-    this.models = {};
+    this.models = models;
 
     this.template = templates[Object.keys(templates)[0]];
     this.templates = templates;
@@ -29,19 +29,15 @@ export default class Schema {
 
   add_templates() {}
 
-  add_models(models = []) {
-    for (let m of models) {
+  add_models(models = {}) {
+    for (let k in models) {
+      let m = models[k];
       m.schema = this;
       this.models[m.id] = m;
     }
   }
 
   preview(generator_id = "amada") {}
-
-  //get output of the code
-  // output(file) {
-  //   return "";
-  // }
 
   parts_decode(file) {
     return {};

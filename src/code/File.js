@@ -45,7 +45,7 @@ export default class File {
    */
   save() {
     let text = this.schema.preview(this);
-    console.log(text);
+    // console.log(text);
   }
 
   toJSON() {
