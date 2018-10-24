@@ -80,7 +80,7 @@ export const keys = {
     d: { target: "editor", action: "delete", prevent: true, par: false },
     D: {
       target: "editor",
-      action: "delete_with_children",
+      action: "delete",
       prevent: true,
       par: true
     }
