@@ -2,15 +2,11 @@ import View from "../View";
 import PartView from "./PartView";
 import { source } from "common-tags";
 import { TSThisType } from "babel-types";
-// import Part from "../../code/Part";
 
 function is_alphanum(key) {
-  // console.log(key.key.length, key.ctrlKey, key);
   return key.key.length == 1;
-  // return key.is
 }
 
-//TODO: ONLY WORKS with +1, -1 parameters
 // const re = /^[a-zA-Z0-9]$/;
 /**
  * This is CodeViews with all information about current line
@@ -52,6 +48,7 @@ export default class EditorView extends View {
     this.__previous_mode = this.mode;
     this.code_preview = "";
     this.allowed_list = {};
+    this.repeat_text = "";
   }
 
   get lang() {
@@ -74,30 +71,35 @@ export default class EditorView extends View {
     this.part_view = this.part_views[val];
   }
 
-  set_mode_edit(source_event, amada, par = true) {
+  __set_mode(name, mode_text = "") {
+    this.mode = name;
+    this.mode_text = mode_text;
+  }
+
+  set_mode_edit(par = true, source_event = undefined) {
     let pv = this.part_view;
 
     if (!pv.cursor_code.has_edit) return;
 
-    this.mode = "edit";
+    this.__set_mode("edit");
 
     if (par) {
       pv.cursor_code.mode_edit();
     } else {
       pv.cursor_code.mode_rename();
     }
-    pv.cursor_code_set(amada, pv.cursor_code, 0);
+    pv.cursor_code_set(pv.cursor_code, 0);
   }
 
   set_mode_view() {
     let pv = this.part_view;
     if (pv.cursor_code) pv.cursor_code.mode_edit();
-    pv.cursor_code_set(this.amada, pv.cursor_code, 0);
-    this.mode = "view";
+    this.__set_mode("view");
+    pv.cursor_code_set(pv.cursor_code, 0);
   }
 
   get is_allowed() {
-    return this.mode == "rename" || this.mode == "add";
+    return this.mode == "replace" || this.mode == "add";
   }
 
   allowed_select(ev) {
@@ -106,8 +108,6 @@ export default class EditorView extends View {
   }
 
   set_allowed(list, allowed_function) {
-    // let pv = this.part_view;
-
     this.allowed_list = list; //pv.cursor_code.parent.allowed();
     this.allowed_function = allowed_function;
 
@@ -118,19 +118,67 @@ export default class EditorView extends View {
   }
 
   edit(code_view, pos = 0) {
-    this.part_view.cursor_code_set(this.amada, code_view, 0);
-    this.set_mode_edit({}, this.amada, true);
+    this.part_view.cursor_code_set(code_view, 0);
+    this.set_mode_edit(true);
   }
 
-  delete(source_event, amada, par) {
+  /***
+   * Depend on parameters
+   * par: false, only delete parent and don't remove children.
+   * Move children upper.
+   */
+  delete(par = false, source_event) {
+    let pv = this.part_view;
+    if (!pv.cursor_code || pv.cursor_code.parent == undefined) return;
+
+    // let cc = !par ? pv.cursor_code.first_select(false) : undefined;
+
+    let cc = pv.cursor_code.next_select_or_parent(!par);
+    if (cc == pv.cursor_code || cc == undefined) cc = pv.cursor_code.parent;
+
+    pv.delete(pv.cursor_code, par);
+    pv.cursor_code_set(cc, 0);
+  }
+
+  add_children_function(model) {
+    let code = model.create("_name");
+    let cv = this.part_view.add_children(this.add_code, code);
+    this.edit(cv);
+  }
+
+  add_children() {
     let pv = this.part_view;
     if (!pv.cursor_code) return;
-    pv.delete(pv.cursor_code, par);
-    this.next_item(undefined, amada, 1);
+    // if (!pv.cursor_code.parent) return;
+
+    this.__set_mode("add", "children");
+    this.add_code = pv.cursor_code;
+    this.set_allowed(pv.cursor_code.allowed(), this.add_children_function);
+  }
+
+  add_parent_function(model) {
+    let code = model.create("_name");
+    let cv = this.part_view.replace(code, this.add_code, this.add_code.code);
+    this.edit(cv);
+  }
+
+  add_parent() {
+    let pv = this.part_view;
+
+    if (!pv.cursor_code) return;
+    if (!pv.cursor_code.parent) {
+      return this.add_children();
+    }
+
+    this.__set_mode("add", "parent");
+    this.add_code = pv.cursor_code;
+    this.set_allowed(pv.cursor_code.parent.allowed(), this.add_parent_function);
   }
 
   add_after_function(model) {
-    model.create("_name_");
+    // model.create("_name_");
+    // console.log(model.create("name"));
+
     let cv = this.part_view.add_after(this.add_code, model.create("_name_"));
     this.edit(cv);
   }
@@ -144,11 +192,23 @@ export default class EditorView extends View {
   add_after() {
     let pv = this.part_view;
     if (!pv.cursor_code) return;
-    if (!pv.cursor_code.parent) return;
+    if (!pv.cursor_code.parent) {
+      return this.add_children();
+    }
+
+    if (pv.cursor_code.is_property) {
+      let prop_view = pv.add_property(
+        "name",
+        "",
+        pv.cursor_code.parent,
+        pv.cursor_code.next
+      );
+      return this.edit(prop_view);
+    }
 
     if (!pv.cursor_code.parent.model.allowed) return;
 
-    this.mode = "add";
+    this.__set_mode("add", "after");
     this.add_code = pv.cursor_code;
     this.set_allowed(pv.cursor_code.parent.allowed(), this.add_after_function);
   }
@@ -156,10 +216,22 @@ export default class EditorView extends View {
   add_before() {
     let pv = this.part_view;
     if (!pv.cursor_code) return;
-    if (!pv.cursor_code.parent) return;
+    if (!pv.cursor_code.parent) {
+      return this.add_children();
+    }
+
+    if (pv.cursor_code.is_property) {
+      let prop_view = pv.add_property(
+        "name",
+        "v",
+        pv.cursor_code.parent,
+        pv.cursor_code
+      );
+      return this.edit(prop_view);
+    }
 
     if (!pv.cursor_code.parent.model.allowed) return;
-    this.mode = "add";
+    this.__set_mode("add", "before");
     this.add_code = pv.cursor_code;
     this.set_allowed(pv.cursor_code.parent.allowed(), this.add_before_function);
   }
@@ -179,14 +251,14 @@ export default class EditorView extends View {
     if (!pv.cursor_code.parent) return;
 
     if (pv.cursor_code.is_property) {
-      return this.set_mode_edit(undefined, this.amada, false);
+      return this.set_mode_edit(false);
     }
 
     // console.log(object);
 
     if (!pv.cursor_code.parent.model.allowed) return;
 
-    this.mode = "rename";
+    this.__set_mode("replace");
     this.rename_code = pv.cursor_code;
 
     this.set_allowed(pv.cursor_code.parent.allowed(), this.replace_function);
@@ -201,134 +273,132 @@ export default class EditorView extends View {
     this.code_preview = this.file.preview();
   }
 
-  set_mode(source_event, amada, par) {
-    switch (par) {
-      case "edit":
-        this.set_mode_edit(source_event, amada, par);
-        break;
-      case "view":
-        this.set_mode_view(source_event, amada, par);
-        break;
-      case "rename":
-        this.set_mode_rename(source_event, amada, par);
-        break;
-    }
-  }
-
-  key(source_event, amada, par) {
+  key(source_event) {
     let pv = this.part_view;
     if (this.mode == "edit") {
       if (is_alphanum(source_event)) {
-        pv.add_text(amada, source_event.key);
+        pv.add_text(source_event.key);
       }
       switch (source_event.key) {
         case "Backspace":
-          pv.back_text(amada);
+          pv.back_text();
           break;
         case "^d":
         case "Delete":
-          pv.del_text(amada);
+          pv.del_text();
           break;
         case "Enter":
-          pv.add_text(amada, "\n");
+          pv.add_text("\n");
           break;
       }
     }
   }
 
-  cursor_go(source_event, amada, pos) {
+  cursor_go(pos, source_event) {
     let pv = this.part_view;
     if (pv.cursor_code == undefined) return;
-    pv.cursor_code_pos(amada, pos);
+    pv.cursor_code_pos(pos);
   }
 
-  cursor_up(source_event, amada, par) {
+  cursor_up(par, source_event) {
     let pv = this.part_view;
     if (pv.cursor_code == undefined) return;
-    pv.cursor_prev_line(amada, pv.cursor_pos);
+    pv.cursor_prev_line(pv.cursor_pos);
   }
 
-  cursor_down(source_event, amada, par) {
+  cursor_down(par, source_event) {
     let pv = this.part_view;
     if (pv.cursor_code == undefined) return;
 
-    pv.cursor_next_line(amada, pv.cursor_pos);
+    pv.cursor_next_line(pv.cursor_pos);
   }
 
-  cursor_next(source_event, amada, par) {
+  cursor_next(par, source_event) {
     let pv = this.part_view;
     if (pv.cursor_code == undefined) return;
 
-    pv.cursor_code_pos(amada, pv.cursor_pos + par);
+    pv.cursor_code_pos(pv.cursor_pos + par);
   }
 
-  cursor_prev(source_event, amada, par) {
+  cursor_prev(par, source_event) {
     let pv = this.part_view;
     if (pv.cursor_code == undefined) return;
 
-    pv.cursor_code_pos(amada, pv.cursor_pos - par);
+    pv.cursor_code_pos(pv.cursor_pos - par);
   }
 
-  // rename(source_event, amada, par) {
-  //   this.set_mode_rename();
-  // }
-
-  cursor_last_in_line(source_event, amada, par) {
+  cursor_last_in_line(par, source_event) {
     let pv = this.part_view;
     if (pv.cursor_code == undefined) return;
 
-    pv.cursor_last_in_line(amada, pv.cursor_pos);
+    pv.cursor_last_in_line(pv.cursor_pos);
     // return true;
   }
 
-  cursor_first_in_line(source_event, amada, par) {
+  cursor_first_in_line(par, source_event) {
     let pv = this.part_view;
     if (pv.cursor_code == undefined) return;
 
-    pv.cursor_first_in_line(amada, pv.cursor_pos);
-    // return true;
+    pv.cursor_first_in_line(pv.cursor_pos);
   }
 
-  __go(amada, par, func) {
+  __go(par, func) {
     let pv = this.part_view;
     if (pv.cursor_code == undefined) return;
     let code = pv.cursor_code;
+    if (this.repeat_text != "") {
+      par = parseInt(this.repeat_text);
+      this.repeat_text = "";
+    }
     for (let i = 0; i < par; i++) code = code[func](); // get_next(pv.cursor_code, par); //get first
-    pv.cursor_code_set(amada, code, 0);
+    pv.cursor_code_set(code, 0);
   }
 
-  next(source_event, amada, par) {
-    this.__go(amada, par, "next_select");
+  next(par = 1, source_event) {
+    this.__go(par, "next_select");
   }
 
-  prev(source_event, amada, par) {
-    this.__go(amada, par, "prev_select");
+  prev(par = 1, source_event) {
+    this.__go(par, "parent_prev_select");
   }
-  down(source_event, amada, par) {
-    this.__go(amada, par, "down_select");
-  }
-
-  up(source_event, amada, par) {
-    this.__go(amada, par, "up_select");
+  down(par = 1, source_event) {
+    this.__go(par, "down_select");
   }
 
-  next_item(source_event, amada, par) {
-    this.__go(amada, par, "next_item");
+  up(par = 1, source_event) {
+    this.__go(par, "up_select");
   }
 
-  prev_item(source_event, amada, par) {
-    this.__go(amada, par, "prev_item");
+  next_item(par = 1, source_event) {
+    this.__go(par, "next_item");
   }
 
-  down_item(source_event, amada, par) {
-    this.__go(amada, par, "down_item");
+  prev_item(par = 1, source_event) {
+    this.__go(par, "prev_item");
   }
 
-  up_item(source_event, amada, par) {
-    this.__go(amada, par, "up_item");
+  down_item(par = 1, source_event) {
+    this.__go(par, "down_item");
+  }
+
+  up_item(par = 1, source_event) {
+    this.__go(par, "up_item");
+  }
+
+  /**Save repeat number */
+  repeat(par = "1") {
+    if (this.repeat_text != undefined) {
+      this.repeat_text += par;
+    } else {
+      this.repeat_text = par;
+    }
   }
 
   toJSON() {
     return [this.id, this.file, this.part_id];
+  }
+
+  info() {
+    console.log(this.part_view.cursor_code.infod, this.part_view.cursor_code);
   }
 }

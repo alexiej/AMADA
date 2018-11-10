@@ -16,17 +16,29 @@ export const keys = {
   editor: {}, //for all editors and modes
   // "editor/edit/section": {}, //view/mode/code name
   "editor/rename": {
-    Escape: { target: "editor", action: "set_mode", par: "view" },
-    "^e": { target: "editor", action: "set_mode", par: "view" }
+    Escape: { target: "editor", action: "set_mode_view" },
+    "^e": { target: "editor", action: "set_mode_view" }
   },
   "editor/add": {
-    Escape: { target: "editor", action: "set_mode", par: "view" },
-    "^e": { target: "editor", action: "set_mode", par: "view" }
+    Escape: { target: "editor", action: "set_mode_view" },
+    "^e": { target: "editor", action: "set_mode_view" }
   },
   "editor/view": {
     //this means that this is when active is code
     //this is standard view for editor
+    "1": { target: "editor", action: "repeat", par: "1" },
+    "2": { target: "editor", action: "repeat", par: "2" },
+    "3": { target: "editor", action: "repeat", par: "3" },
+    "4": { target: "editor", action: "repeat", par: "4" },
+    "5": { target: "editor", action: "repeat", par: "5" },
+    "6": { target: "editor", action: "repeat", par: "6" },
+    "7": { target: "editor", action: "repeat", par: "7" },
+    "8": { target: "editor", action: "repeat", par: "8" },
+    "9": { target: "editor", action: "repeat", par: "9" },
+    "0": { target: "editor", action: "repeat", par: "0" },
+
     i: { target: "editor", action: "up", par: 1 },
+    "^i": { target: "editor", action: "info", par: 1 },
     k: { target: "editor", action: "down", par: 1 },
     j: { target: "editor", action: "prev", par: 1 },
     l: { target: "editor", action: "next", par: 1 },
@@ -72,10 +84,14 @@ export const keys = {
     "^s": { target: "editor", action: "save" },
 
     E: { target: "editor", action: "replace", prevent: true },
-    e: { target: "editor", action: "set_mode", par: "edit" },
+    e: { target: "editor", action: "set_mode_edit", par: true },
 
     a: { target: "editor", action: "add_after", prevent: true },
     A: { target: "editor", action: "add_before", prevent: true },
+
+    r: { target: "editor", action: "add_parent", prevent: true, par: 1 },
+
+    R: { target: "editor", action: "add_children", prevent: true, par: 1 },
 
     d: { target: "editor", action: "delete", prevent: true, par: false },
     D: {
@@ -87,8 +103,8 @@ export const keys = {
   },
 
   "editor/edit": {
-    Escape: { target: "editor", action: "set_mode", par: "view" },
-    "^e": { target: "editor", action: "set_mode", par: "view" },
+    Escape: { target: "editor", action: "set_mode_view" },
+    "^e": { target: "editor", action: "set_mode_view" },
 
     "^i": { target: "editor", action: "cursor_up", par: 1 },
     "^k": { target: "editor", action: "cursor_down", par: 1 },

@@ -63,8 +63,35 @@ export default class PartView {
   }
 
   delete(code_view, include_children = false) {
-    this.part.delete(code_view.code, include_children);
+    if (code_view.is_property) {
+      this.part.delete_property(code_view.code, code_view.value);
+    } else {
+      this.part.delete(code_view.code, include_children);
+    }
     code_view.parent.delete(code_view, include_children);
+  }
+
+  // before and after a property
+  add_property(key, value, code_view, before = undefined) {
+    if (before != undefined) {
+      let p = this.part.add_property(key, value, code_view.code, before.value);
+      let pv = this.get_property_view(p, code_view.code);
+      code_view.add_prop_before(before, pv);
+      return pv;
+    } else {
+      let p = this.part.add_property(key, value, code_view.code);
+
+      let pv = this.get_property_view(p, code_view.code);
+      code_view.add_prop(pv);
+      return pv;
+    }
+  }
+
+  add_children(code_view, code) {
+    let c = this.part.add_children(code_view.code, code);
+    let cv = this.get_view(c);
+    code_view.add(cv);
+    return cv;
   }
 
   add_after(code_view, code) {
@@ -81,8 +108,11 @@ export default class PartView {
     return cv;
   }
 
-  replace(new_code, replace_code_view) {
+  replace(new_code, replace_code_view, code = undefined) {
     this.part.replace(new_code, replace_code_view.code);
+    if (code) {
+      new_code.add(code);
+    }
     let new_code_view = this.get_view(new_code);
     replace_code_view.parent.replace(new_code_view, replace_code_view);
     return new_code_view;
@@ -123,7 +153,7 @@ export default class PartView {
     }
   }
 
-  add_text(amada, text) {
+  add_text(text) {
     let a = this.cursor_text;
     // console.log(a);
     let text2 = [
@@ -134,34 +164,34 @@ export default class PartView {
     // console.log(text);
 
     this.cursor_text = text2;
-    this.cursor_code_pos(amada, this.cursor_pos + 1);
+    this.cursor_code_pos(this.cursor_pos + 1);
     this.code_change();
   }
 
-  back_text(amada) {
+  back_text() {
     let a = this.cursor_text;
 
     if ((this.cursor_pos > 0) & (a.length > 0)) {
       a = a.slice(0, this.cursor_pos - 1) + a.slice(this.cursor_pos);
 
       this.cursor_text = a;
-      this.cursor_code_pos(amada, this.cursor_pos - 1);
+      this.cursor_code_pos(this.cursor_pos - 1);
     }
     this.code_change();
   }
 
-  del_text(amada) {
+  del_text() {
     let a = this.cursor_text;
 
     if ((this.cursor_pos < this.cursor_text.length) & (a.length > 0)) {
       a = a.slice(0, this.cursor_pos) + a.slice(this.cursor_pos + 1);
       this.cursor_text = a;
-      this.cursor_code_pos(amada, this.cursor_pos);
+      this.cursor_code_pos(this.cursor_pos);
     }
     this.code_change();
   }
 
-  cursor_next_line(amada, pos = 0) {
+  cursor_next_line(pos = 0) {
     let next_enter = __get_next_line_pos(this.cursor_text, pos);
 
     if (next_enter > 0) {
@@ -179,32 +209,32 @@ export default class PartView {
           ? this.cursor_text.length
           : next_enter;
       // console.log("k enter", next_enter, this.cursor_x, second_enter);
-      this.cursor_code_pos(amada, next_enter);
+      this.cursor_code_pos(next_enter);
     } else {
       // pos = this.cursor_x;
-      this.cursor_code_pos(amada, this.cursor_x);
+      this.cursor_code_pos(this.cursor_x);
     }
   }
 
-  cursor_first_in_line(amada, par) {
+  cursor_first_in_line(par) {
     let curr_enter = __get_prev_line_pos(this.cursor_text, par);
     // console.log(curr_enter, par, "cursor_first_in_inline");
 
     if (curr_enter >= 0) {
-      this.cursor_code_pos(amada, curr_enter);
+      this.cursor_code_pos(curr_enter);
     }
   }
 
-  cursor_last_in_line(amada, par) {
+  cursor_last_in_line(par) {
     let curr_enter = __get_next_line_pos(this.cursor_text, par);
     if (curr_enter > 0) {
-      this.cursor_code_pos(amada, curr_enter - 1);
+      this.cursor_code_pos(curr_enter - 1);
     } else {
-      this.cursor_code_pos(amada, this.cursor_text.length - 1);
+      this.cursor_code_pos(this.cursor_text.length);
     }
   }
 
-  cursor_prev_line(amada, pos = 0) {
+  cursor_prev_line(pos = 0) {
     let curr_enter = __get_prev_line_pos(this.cursor_text, pos);
     let prev_enter = 0;
 
@@ -225,12 +255,14 @@ export default class PartView {
       if (prev_enter >= curr_enter) {
         prev_enter = curr_enter - 1;
       }
-      this.cursor_code_pos(this.amada, prev_enter);
+      this.cursor_code_pos(prev_enter);
     }
   }
 
-  cursor_code_pos(amada, pos = 0) {
-    if (!this.cursor_text) return;
+  cursor_code_pos(pos = 0) {
+    if (this.cursor_text == undefined) return;
+    // console.log(this.cursor_text, !this.cursor_text);
+    if (!this.cursor_text) pos = 0;
     else {
       pos =
         pos > this.cursor_text.length
@@ -245,21 +277,21 @@ export default class PartView {
     this.cursor_x =
       this.cursor_pos - __get_prev_line_pos(this.cursor_text, this.cursor_pos);
 
-    console.log({ pos, x: this.cursor_x, y: this.cursor_y });
+    // console.log({ x: this.cursor_x, pos: this.cursor_pos });
 
     let component = this.amada.components[this._component_id];
     if (component == undefined) return;
     component.cursor_to_code(this.cursor_code, this.cursor_pos);
   }
 
-  cursor_code_set(amada, code, pos = 0) {
+  cursor_code_set(code, pos = 0) {
     this.cursor_code = code;
 
-    this.cursor_code_pos(amada, pos);
+    this.cursor_code_pos(pos);
   }
 
-  cursor_update(amada) {
-    let component = amada.components[this._component_id];
+  cursor_update() {
+    let component = this.amada.components[this._component_id];
 
     if (component == undefined) return;
     component.scroll_top();
@@ -273,5 +305,19 @@ export default class PartView {
     } else {
       return undefined;
     }
+  }
+
+  get_property_view(p, code) {
+    if (code.view_id in this.template) {
+      let view = this.template[code.view_id];
+      let code_view = view.get_property_view(p, code, this);
+      return code_view;
+    } else {
+      return undefined;
+    }
+  }
+
+  get infod() {
+    return "P/" + this.code_view.infod;
   }
 }

@@ -4,7 +4,9 @@
   class="amada-code" :id="code_view.id">
     <span v-if="code_view.has_header" class="header">
       <span v-if="code_view.header.prefix!=''">{{code_view.header.prefix}}</span>
-      <span v-if="code_view.header.display_val!='' && code_view.code.has_value" :id="code_view.val_id" class="val">{{code_view.value[code_view.header.display_val]}}</span>
+      <span v-if="code_view.header.display_val!=''" :id="code_view.val_id"
+      :class="{'edited': code_view.val_id == code_view.edit_id }"
+       class="val">{{code_view.value[code_view.header.display_val]}}</span>
       <span v-if="code_view.has_properties" class="properties">
           <span class="prefix">{{code_view.properties.prefix}}</span>
           <span v-for="pv in code_view.props" :key="pv.id"
@@ -16,9 +18,9 @@
           >
           
             <span class="prefix">{{pv.property.prefix}}</span>
-            <span class="key" :id="pv.key_id" >{{pv.value[pv.property.display_key]}}</span>
+            <span class="key" :id="pv.key_id" :class="{'edited': pv.key_id == pv.edit_id }"  >{{pv.value[pv.property.display_key]}}</span>
               <span class="between">{{pv.property.between}}</span>
-             <span  class="val" :id="pv.val_id" >{{pv.value[pv.property.display_val]}}</span>   
+             <span  class="val" :id="pv.val_id"  :class="{'edited': pv.val_id == pv.edit_id }"  >{{pv.value[pv.property.display_val]}}</span>   
              <span class="suffix">{{pv.property.suffix}}</span>
 
              <span v-if="!pv.is_last">{{  pv.property.list_div}}</span>
@@ -64,9 +66,12 @@ div {
   position: relative;
   vertical-align: top;
   white-space: pre;
+  min-height: 22px;
 }
 
-
+.amada-code {
+  display: inline-block;
+}
 
 .selected-code {
   /* display: inline-block !important; */

@@ -30,10 +30,29 @@ export default class Part {
     let i = parent.codes.indexOf(code);
     if (!include_children) {
       let codes = code.codes;
-      for (let c of codes) c.parent = this;
+      for (let c of codes) c.parent = parent;
       insertArrayAt(parent.codes, i + 1, code.codes);
     }
     parent.codes.splice(i, 1);
+  }
+
+  delete_property(code, property) {
+    let i = code.properties.indexOf(property);
+    code.properties.splice(i, 1);
+  }
+
+  add_property(key, value, code, before = undefined) {
+    let p = {
+      key: key,
+      value: value
+    };
+    if (before == undefined) {
+      code.properties.push(p);
+    } else {
+      let i = code.properties.indexOf(before);
+      code.properties.splice(i, 0, p);
+    }
+    return p;
   }
 
   //create new code, with selected model
@@ -51,6 +70,12 @@ export default class Part {
     for (let c of codes) {
       this.__add(parent, c);
     }
+  }
+
+  add_children(parent, code) {
+    this.__add(parent, code);
+    parent.codes.push(code);
+    return code;
   }
 
   __add(parent, code) {

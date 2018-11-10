@@ -1,52 +1,36 @@
 
 <template >
-    <div  class="amada-editor" :class="['editor-'+editor_view.mode]">
-
-      <div class="amada-tabs">
-           <el-tabs :value="editor_view.part_view_id" 
-
-                      ref="amada-tabs"
-                      @input="set_current_part($event)"
-
-                      class="amada-tab" >
-                 
-                        <el-tab-pane 
-                        ref="tab-pane"
-                        :label="pv.name" 
-                        :key="pv.name" 
-                        :name="pv.name" 
-                        v-for="pv in editor_view.part_views">
-                              <apart :part_view="pv" >
-                              </apart>
-                          </el-tab-pane>
-                      </el-tabs> 
-      </div>
-   <div class="amada-preview"  v-if="editor_view.part_view.preview_visible">
-    <ace 
-    class="amada-preview"
-       :content="editor_view.part_view.editor_view.code_preview" 
-                    theme="xcode" 
-                    :lang="editor_view.part_view.editor_view.lang"
-        name="amada-preview2"> </ace>
-   </div>
-   <div class="amada-properties">
-     <div class="title">
-      {{editor_view.part_view.cursor_code.model.name}}:{{editor_view.part_view.cursor_code.display_key}}
+  <div class="amada-editor" :class="['editor-'+editor_view.mode]">
+    <div class="amada-settings">
+      {{editor_view.mode}}<span v-if="editor_view.mode_text">:{{editor_view.mode_text}}</span><span v-if="editor_view.repeat_text">: {{editor_view.repeat_text}}</span>
     </div>
 
-    <div class="amada-allowed" v-show="editor_view.is_allowed">
-      <el-input v-model="search"
-       @keyup.enter.native="allowed_update(filteredItems[0])"
-       type="text" size="medium" ref="allowed-input"/>
-      <div class="item" 
-      v-for="l in filteredItems" :key="l.id">
-        <el-button @click="allowed_update(l)" :type="filteredItems[0] == l ? 'primary' : ''" plain >{{l.name}}</el-button>
+    <div class="amada-tabs">
+      <el-tabs :value="editor_view.part_view_id" ref="amada-tabs" @input="set_current_part($event)" class="amada-tab">
+
+        <el-tab-pane ref="tab-pane" :label="pv.name" :key="pv.name" :name="pv.name" v-for="pv in editor_view.part_views">
+          <apart :part_view="pv">
+          </apart>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+    <div class="amada-preview" v-if="editor_view.part_view.preview_visible">
+      <ace class="amada-preview" :content="editor_view.part_view.editor_view.code_preview" theme="xcode" :lang="editor_view.part_view.editor_view.lang" name="amada-preview2"> </ace>
+    </div>
+    <div class="amada-properties">
+      <div class="title">
+        {{editor_view.part_view.cursor_code.model.name}}:{{editor_view.part_view.cursor_code.display_key}}
+      </div>
+
+      <div class="amada-allowed" v-show="editor_view.is_allowed">
+        <el-input v-model="search" @keyup.enter.native="allowed_update(filteredItems[0])" type="text" size="medium" ref="allowed-input" />
+        <div class="item" v-for="l in filteredItems" :key="l.id">
+          <el-button @click="allowed_update(l)" :type="filteredItems[0] == l ? 'primary' : ''" plain>{{l.name}}</el-button>
+        </div>
       </div>
     </div>
+
   </div>
-
-
-    </div>
 </template>
 <script>
 import ace from "./ace/ace";
@@ -91,12 +75,6 @@ export default {
       inp.select();
       inp.focus();
       this.$nextTick(() => el.$refs.input.focus())
-   
-  //  console.log(el.focused);
-      // console.log(el.$refs['input'].focus());
-      // el.$el.focus();
-      // el.focus();
-      
     },
 
     set_current_part(pane) {

@@ -59,11 +59,23 @@ border-radius: 5px;
   
 }
 
+
+
 .editor-edit .selected-code {
   background-color: rgba(0,25,255,.05);
-  .selected-id {
-    background-color: rgba(255, 0, 221,.06)
+  .edited {
+    border-left: 1px solid rgba(0,0,0,0.5);
+    border-right: 1px solid rgba(0,0,0,0.5);
   }
+
+
+  .selected-id {
+    background-color: rgba(255, 0, 221,.06);
+
+
+  }
+
+
 
 }
 

@@ -18,7 +18,7 @@ import {
   __get_line_pos
 } from "../../../src/amada/views/PartView";
 
-describe("ParView.spec.js", () => {
+describe("ParView - cursor.spec.js", () => {
   it("__get_prev_line_pos 3", () => {
     expect(__get_prev_line_pos("Very loong tex", 3)).to.eq(0);
     expect(__get_prev_line_pos("Very loong\n AAAA", -1)).to.eq(0);
@@ -64,167 +64,145 @@ describe("ParView.spec.js", () => {
   it("Load Editor", async () => {
     ev = new EditorView(amada, "id", file);
     pv = ev.part_view;
-    expect(await json(ev)).to.eq(await jsone(ev, "../test/editor_view_01"));
-    expect(pv.cursor_code.display_val).to.eq("!doctype");
-  });
-  it("Cursor !doctype", async () => {
-    expect(pv.cursor_code.display_val).to.eq("!doctype");
+    // expect(await json(ev)).to.eq(await jsone(ev, "../test/editor_view_01"));
+    expect(pv.cursor_code.info).to.eq("html/html (3)");
   });
   it("go edit - comment", async () => {
-    ev.down(undefined, amada, 8);
-    expect(pv.cursor_code.component_class).to.eq("comment"); //we are in the comments
+    ev.down(8);
+    expect(pv.cursor_code.info).to.eq("comment/ <link rel (19)"); //we are in the comments
 
-    ev.set_mode_edit(undefined, amada, 1);
+    ev.set_mode_edit();
     expect(ev.mode).to.eq("edit"); //we are in the comments
 
-    ev.cursor_next(undefined, amada, 2);
+    ev.cursor_next(2);
     expect(pv.cursor_pos).to.eq(2);
     expect(pv.cursor_x).to.eq(2);
 
     // ev.cursor_next(undefined, amada, 64);
-    ev.cursor_down(undefined, amada, 1);
+    ev.cursor_down(1);
     expect(pv.cursor_x).to.eq(2);
     expect(pv.cursor_pos).to.eq(62);
 
-    ev.cursor_up(undefined, amada, 1);
+    ev.cursor_up(1);
 
     expect(pv.cursor_pos).to.eq(2); //we are in the comments
     expect(pv.cursor_x).to.eq(2); //we are in the comments
   });
   it("go +1 line/-1 line", async () => {
-    ev.cursor_down(undefined, amada, 1);
-    ev.cursor_down(undefined, amada, 1);
+    ev.cursor_down(1);
+    ev.cursor_down(1);
 
-    ev.cursor_up(undefined, amada, 1);
+    ev.cursor_up(1);
 
     expect(pv.cursor_pos).to.eq(62); //we are in the comments
     expect(pv.cursor_x).to.eq(2); //we are in the comments
   });
   it("go  -1 line", async () => {
-    ev.cursor_up(undefined, amada, 1);
-    ev.cursor_up(undefined, amada, 1);
+    ev.cursor_up(1);
+    ev.cursor_up(1);
 
     expect(pv.cursor_pos).to.eq(186); //we are in the comments
     expect(pv.cursor_x).to.eq(2); //we are in the comments
   });
   it("go +1 line/break", async () => {
-    ev.cursor_down(undefined, amada, 1);
+    ev.cursor_down(1);
     expect(pv.cursor_pos).to.eq(2); //we are in the comments
     expect(pv.cursor_pos).to.eq(pv.cursor_x); //we are in the comments
   });
   it("go pos 26", async () => {
-    ev.cursor_go(undefined, amada, 26);
+    ev.cursor_go(26);
     expect(pv.cursor_pos).to.eq(26); //we are in the comments
     expect(pv.cursor_x).to.eq(26); //we are in the comments
-    ev.cursor_down(undefined, amada, 1);
+    ev.cursor_down(1);
     expect(pv.cursor_x).to.eq(20); //we are
     expect(pv.cursor_pos).to.eq(80); //we are in the comments
   });
   it("go down", async () => {
-    ev.cursor_down(undefined, amada, 1);
+    ev.cursor_down(1);
     expect(pv.cursor_pos).to.eq(93); //we are in the comments
 
     expect(pv.cursor_x).to.eq(12); //we are
   });
   it("go up", async () => {
-    ev.cursor_go(undefined, amada, 110);
+    ev.cursor_go(110);
     expect(pv.cursor_pos).to.eq(110); //we are in the comments
     expect(pv.cursor_x).to.eq(16); //we are in the comments
 
-    ev.cursor_up(undefined, amada, 1);
+    ev.cursor_up(1);
     expect(pv.cursor_pos).to.eq(93); //we are in the comments
 
     expect(pv.cursor_x).to.eq(12); //we are
   });
-  it("go down", async () => {
+  it("go down 118->cursor_down", async () => {
     console.log(
       "==================================================================="
     );
-    ev.cursor_go(undefined, amada, 118);
+    ev.cursor_go(118);
     expect(pv.cursor_pos).to.eq(118); //we are in the comments
     expect(pv.cursor_x).to.eq(24); //we are in the comments
 
-    ev.cursor_down(undefined, amada, 1);
-    expect(pv.cursor_pos).to.eq(200); //we are in the comments
-
-    expect(pv.cursor_x).to.eq(16); //we are
+    ev.cursor_down(1);
+    expect(pv.cursor_pos).to.eq(201); //we are in the comments
+    expect(pv.cursor_x).to.eq(17); //we are on the end of the text
   });
-  it("go down", async () => {
-    ev.cursor_go(undefined, amada, 118);
-    expect(pv.cursor_pos).to.eq(118); //we are in the comments
-    expect(pv.cursor_x).to.eq(24); //we are in the comments
 
-    ev.cursor_down(undefined, amada, 1);
-    expect(pv.cursor_pos).to.eq(200); //we are in the comments
-
-    expect(pv.cursor_x).to.eq(16); //we are
-  });
   it("go next", async () => {
-    ev.cursor_next(undefined, amada, 1);
+    ev.cursor_next(1);
     expect(pv.cursor_pos).to.eq(0); //we are in the comments
     expect(pv.cursor_x).to.eq(0); //we are
   });
-  it("go prev", async () => {
-    ev.cursor_prev(undefined, amada, 1);
-    expect(pv.cursor_pos).to.eq(200); //we are in the comments
-    expect(pv.cursor_x).to.eq(16); //we are
+  it("go 0->prev", async () => {
+    ev.cursor_prev(1);
+    expect(pv.cursor_pos).to.eq(201); //we are in the comments
+    expect(pv.cursor_x).to.eq(17); //we are
   });
   it("go down/2", async () => {
-    ev.cursor_go(undefined, amada, 21);
+    ev.cursor_go(21);
     expect(pv.cursor_pos).to.eq(21); //we are in the comments
     expect(pv.cursor_x).to.eq(21); //we are in the comments
 
-    ev.cursor_down(undefined, amada, 1);
+    ev.cursor_down(1);
     expect(pv.cursor_pos).to.eq(80); //we are in the comments
     expect(pv.cursor_x).to.eq(20); //we are
   });
 
   it("go begin line", async () => {
-    ev.cursor_go(undefined, amada, 6);
+    ev.cursor_go(6);
     expect(pv.cursor_pos).to.eq(6); //we are in the comments
     expect(pv.cursor_x).to.eq(6); //we are in the comments
 
-    ev.cursor_first_in_line(undefined, amada);
+    ev.cursor_first_in_line();
     expect(pv.cursor_pos).to.eq(0); //we are in the comments
     expect(pv.cursor_x).to.eq(0); //we are
 
-    ev.cursor_last_in_line(undefined, amada);
+    ev.cursor_last_in_line();
     expect(pv.cursor_pos).to.eq(59); //we are in the comments
     expect(pv.cursor_x).to.eq(59); //we are
 
-    ev.cursor_go(undefined, amada, 191);
+    ev.cursor_go(191);
     expect(pv.cursor_pos).to.eq(191); //we are in the comments
     expect(pv.cursor_x).to.eq(7); //we are in the comments
 
-    ev.cursor_first_in_line(undefined, amada);
+    ev.cursor_first_in_line();
     expect(pv.cursor_pos).to.eq(184); //we are in the comments
     expect(pv.cursor_x).to.eq(0); //we are
 
-    ev.cursor_last_in_line(undefined, amada);
-    expect(pv.cursor_pos).to.eq(200); //we are in the comments
-    expect(pv.cursor_x).to.eq(16); //we are
+    ev.cursor_last_in_line();
+    expect(pv.cursor_pos).to.eq(201); //we are in the comments
+    expect(pv.cursor_x).to.eq(17); //we are
   });
 
-  it("go begin line", async () => {});
+  it("go empty line", async () => {
+    ev.set_mode_view();
+    ev.down(2);
+    expect(pv.cursor_code.info).to.eq("comment/A (21)"); //we are in the comments
 
-  // it("Go back", async () => {
-  //   ev.cursor_prev(undefined, amada, 2);
-  //   expect(pv.cursor_pos).to.eq(200); //Last comment
+    ev.set_mode_edit();
+  });
 
-  //   ev.cursor_up(undefined, amada, 1);
-  //   expect(pv.cursor_pos).to.eq(110); //Last comment
-
-  //   ev.cursor_up(undefined, amada, 1);
-  //   expect(pv.cursor_pos).to.eq(93); //Last comment
-
-  //   console.log("Start");
-  //   ev.cursor_down(undefined, amada, 1);
-  //   expect(pv.cursor_pos).to.eq(106); //Last comment
-
-  //   console.log(pv.cursor_pos);
-
-  //   // ev.cursor_down(undefined, amada, 1);
-  //   // expect(pv.cursor_pos).to.eq(81); //we are in the comments
-  //   // ev.key({key: 'l',ctrlKey:true })
-  // });
+  it("go end of line", async () => {
+    ev.cursor_last_in_line();
+    expect(pv.cursor_code.info).to.eq("comment/A (21)"); //we are in the comments
+    expect(pv.cursor_pos).to.eq(1); //we are in the comments
+  });
 });

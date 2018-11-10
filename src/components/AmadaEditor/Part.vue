@@ -20,9 +20,19 @@
 </template>
 <script>
 import ace from "../ace/ace";
-// import Codes from './Codes';
 import { __isempty } from "../../__helpers.js";
 import Vue from 'vue';
+
+function getTotal(a,parent) {
+  var b = 0, c = 0;
+  while (a!=parent) {
+      b += a.offsetLeft;
+      c += a.offsetTop;
+      a = a.offsetParent;
+  }
+  return [b,c];
+}
+
 
 function getTextWidth(text, font) {
   // if given, use cached canvas for better performance
@@ -34,29 +44,7 @@ function getTextWidth(text, font) {
   return metrics.width;
 }
 
-function findClickedWord(parentElt, x, y) {
-  if (parentElt.nodeName !== "#text") {
-    console.log("didn't click on text node");
-    return null;
-  }
-  var range = document.createRange();
-  var words = parentElt.textContent.split(" ");
-  var start = 0;
-  var end = 0;
-  for (var i = 0; i < words.length; i++) {
-    var word = words[i];
-    end = start + word.length;
-    range.setStart(parentElt, start);
-    range.setEnd(parentElt, end);
-    // not getBoundingClientRect as word could wrap
-    var rects = range.getClientRects();
-    var clickedRect = isClickInRects(rects);
-    if (clickedRect) {
-      return [word, start, clickedRect];
-    }
-    start = end + 1;
-  }
-}
+
 
 export default {
   props: ["part_view"],
@@ -84,18 +72,10 @@ export default {
     let el = this.$refs["text-width"];
     this.text_width = el.getBoundingClientRect().width;
     this.text_height = el.getBoundingClientRect().height;
-
-    // console.log('W',this.text_width,this.text_height);
-    // var element = document.getElementById(this.part_view._component_id);
-    // console.log(element);
-    // this.text_width = getTextWidth('A',);
-
     this.$amada.components_connect(this, this.part_view);
   },
   methods: {
     scroll_top() {
-      // this.cursorTopPosition = this.fileView.line * this.lineSize
-      // this.cursorLeftPosition = this.measureText(this.fileView.lineText)
       let n = (this.part_view.top - 5) * this.lineSize;
       this.$el.scrollTop = n <= 0 ? 0 : n;
     },
@@ -106,24 +86,37 @@ export default {
     },
 
     cursor_to_code(code_view, pos = 0) {
+      // console.log('pos',pos);
       var v = this;
       Vue.nextTick(function() {
-         var element = document.getElementById(code_view.edit_id);
-         if (element == undefined) return;
 
+         var element = document.getElementById(code_view.edit_id);
+ 
+         if (element == undefined) return;
         let text = code_view.edit_text;
 
-        element.textContent =  text.substr(0, pos); //text.substr(0, pos);
+        // console.log('A'+code_view.edit_text+'A');
+
+        element.textContent =  text.substr(0, pos) ; //text.substr(0, pos);
+        // element.className = "edited";
+        // element.textContent = "\n";
+
+        // element.innerHTML = text.substr(0, pos).replace(/\n\r?/g, '<br /> ');
+        // console.log('X' + text + 'X');
+        
         var cursor = v.$refs["cursor"];
+        var parent = v.$refs["editor"];
+        // console.log(parent.$el, v.$refs);
+        //  console.log(cursor.$el.offsetLeft, element.offsetLeft);
         element.appendChild(cursor.$el);
+        // console.log( getTotal(cursor.$el, parent));
+        let top = element.offsetTop +  cursor.$el.offsetTop;
+        let left = getTotal(cursor.$el, parent) ;
   
         element.appendChild(document.createTextNode(text.substr(pos)));
-        v.$el.scrollTop = cursor.$el.offsetTop - 5 * v.lineSize;
-        v.$el.scrollLeft = cursor.$el.offsetLeft - 155;
-
+        v.$el.scrollTop = top  - 5 * v.lineSize;
+        v.$el.scrollLeft = left[0]  - 50;
       })
-      // this.next
-      // var element = document.getElementById(code_view.edit_id);
     },
 
     scroll_to_code(code) {}

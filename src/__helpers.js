@@ -30,3 +30,8 @@ export function file_write(path, data, opts = "utf8") {
     });
   });
 }
+
+String.prototype.replaceAll = function(search, replacement) {
+  var target = this;
+  return target.split(search).join(replacement);
+};

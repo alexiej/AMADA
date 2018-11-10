@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "test:unit": "vue-cli-service test:unit",
+    "test:unit": "vue-cli-service test:unit --watch",
     "test:e2e": "vue-cli-service test:e2e",
     "build:electron": "vue-cli-service build:electron",
     "serve:electron": "vue-cli-service serve:electron",
@@ -42,7 +42,6 @@
     "vue-cli-plugin-electron-builder": "^1.0.0-rc.2",
     "vue-cli-plugin-pug": "^1.0.5",
     "vue-cli-plugin-scss-base": "^0.1.8",
-    "vue-cli-plugin-unit-karma": "^0.5.0",
     "vue-template-compiler": "^2.5.17"
   },
   "resolutions": {

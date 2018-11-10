@@ -20,3 +20,10 @@ export async function jsone(obj, path) {
 export async function json(obj) {
   return JSON.stringify(obj);
 }
+
+export function key(str) {
+  return {
+    ctrlKey: str.charAt(0) == "^" ? true : false,
+    key: str.charAt(0) == "^" ? str.substring(1, str.length) : str
+  };
+}

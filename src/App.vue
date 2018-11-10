@@ -95,15 +95,12 @@ export default {
       v.isFocused2 = true;
     });
     
-    let path ='C:\\\PUBLIC\\\PROJECTS-FINAL\\\amada\\test\\index.html';
-    await this.$amada.file_open(path);
-    this.$amada.editor_view.down(undefined,this.$amada,8);
+     let path ='C:\\\PUBLIC\\\PROJECTS-FINAL\\\amada\\test\\index.html';
+     await this.$amada.file_open(path);
+    // this.$amada.editor_view.down(8);
     // this.$amada.editor_view.preview();
-    
     // console.log("App.vue: ", path, this.$amada.editor_view);
-
     // console.log(this.$amada.editor_view)
-
 
   },
   methods: {

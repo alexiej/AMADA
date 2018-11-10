@@ -114,6 +114,21 @@ export class Template {
     return this.footer.is_visible;
   }
 
+  get_property_view(p, code, part_view) {
+    return new CodeView({
+      id: part_view.get_id(),
+      part_view: part_view,
+      code: code,
+      value: p,
+      template: this,
+      type: VIEW_PROPERTY,
+
+      component_class: this.component_class + "-property",
+      component_name: this.component_name,
+      is_select: true //<-we only set for a block to select whole section
+    });
+  }
+
   /**
    * get view of the code
    */
@@ -136,20 +151,7 @@ export class Template {
         let is_last = code.properties.indexOf(p);
         is_last = is_last == code.properties.length - 1;
 
-        main.add_prop(
-          new CodeView({
-            id: part_view.get_id(),
-            part_view: part_view,
-            code: code,
-            value: p,
-            template: this,
-            type: VIEW_PROPERTY,
-
-            component_class: this.component_class + "-property",
-            component_name: this.component_name,
-            is_select: true //<-we only set for a block to select whole section
-          })
-        );
+        main.add_prop(this.get_property_view(p, code, part_view));
       }
     }
 
@@ -160,7 +162,6 @@ export class Template {
       }
       main.add(v.get_view(c, part_view));
     }
-
     return main;
   }
 }

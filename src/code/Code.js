@@ -19,6 +19,12 @@ export default class Code {
     this.codes = codes; //<- list of codes assign to the code
   }
 
+  add(code) {
+    code.parent = this;
+    this.codes.push(code);
+    return;
+  }
+
   get has_properties() {
     return this.properties.length > 0;
   }
@@ -106,5 +112,26 @@ export default class Code {
       this,
       generator_id ? generator_id : this.schema.preview_default
     );
+  }
+
+  get info() {
+    let p_text = "";
+    if (this.has_properties) {
+      p_text = " (";
+      for (let p of this.properties) {
+        p_text += p.key + ":" + p.value + ",";
+      }
+      p_text += ")";
+    }
+
+    return this.model.name + p_text + "/" + this.id;
+  }
+
+  get infod() {
+    let t = this.info;
+    for (let cv of this.codes) {
+      t += "\n  " + cv.infod.replace("\n  ", "\n    ");
+    }
+    return t;
   }
 }

@@ -25,9 +25,6 @@ export const VIEW_SECTION = 3; //<-the whole section fo the view
 export const SOURCE_TEXT = 0;
 export const SOURCE_VAL = 1;
 
-// class CodeShow {
-//   constructor()
-// }
 function _keyval(type, display, value) {
   return type ? value[display] : display;
 }
@@ -104,34 +101,33 @@ export class CodeView {
       code_view.next.prev = code_view.prev;
     }
 
-    parent.codes.splice(i, 1);
-    parent.code_views.splice(i, 1);
+    if (i >= 0) parent.codes.splice(i, 1);
+    parent.code_views.splice(iv, 1);
+    if (code_view.is_property) {
+      let ip = parent.props.indexOf(code_view);
+      parent.props.splice(ip, 1);
+    }
 
     if (!include_children) {
-      if (!include_children) {
-        let codes = code_view.codes;
-        if (codes.length > 0) {
-          if (code_view.prev) {
-            let fs = this.__find_first_select(codes);
-            if (fs) {
-              fs.prev = code_view.prev;
-              code_view.prev.next = fs;
-            }
-          }
-          if (code_view.next) {
-            let ls = this.__find_last_select(codes);
-            if (ls) {
-              ls.next = code_view.next;
-              code_view.next.prev = ls;
-            }
-          }
-        }
+      let codes = code_view.codes;
 
-        for (let c of codes) c.parent = this;
-        insertArrayAt(parent.codes, i, code_view.codes);
+      if (codes.length > 0) {
+        let fs = codes[0];
+        fs.prev = code_view.prev;
+        if (code_view.prev) {
+          code_view.prev.next = fs;
+        }
+        let ls = codes[codes.length - 1];
+        ls.next = code_view.next;
+        if (code_view.next) {
+          code_view.next.prev = ls;
+        }
       }
+
+      for (let c of codes) c.parent = this;
+      insertArrayAt(parent.codes, i, codes);
+      insertArrayAt(parent.code_views, iv, codes);
     }
-    // console.log(code_view.parent.infod);
   }
 
   mode_edit() {
@@ -149,7 +145,7 @@ export class CodeView {
   }
 
   get edit_text() {
-    return this.value[this.edit_key];
+    return this.edit_key != "" ? this.value[this.edit_key] : "";
   }
 
   set edit_text(val) {
@@ -210,8 +206,23 @@ export class CodeView {
     return code;
   }
 
+  add_prop_before(before, code) {
+    code.parent = this;
+    before.prev = code;
+    code.next = before;
+    this.code_views.push(code);
+    this.props.push(code);
+    return code;
+  }
+
   add_prop(code) {
-    this._add(code);
+    code.parent = this;
+    let c = this.last_property;
+    if (c) {
+      c.next = code;
+      code.prev = c;
+    }
+    this.code_views.push(code);
     this.props.push(code);
     return code;
   }
@@ -392,6 +403,12 @@ export class CodeView {
       : undefined;
   }
 
+  get last_property() {
+    return this.props.length > 0
+      ? this.props[this.props.length - 1]
+      : undefined;
+  }
+
   first() {
     return this.code_views.length > 0 ? this.code_views[0] : undefined;
   }
@@ -459,6 +476,34 @@ export class CodeView {
     }
     return n;
   }
+  /**
+   * Select without children
+   */
+  next_select_or_parent(include_children = false) {
+    if (include_children) {
+      for (let c of this.codes) {
+        let ci = c.first_select();
+        if (ci) return ci;
+      }
+    }
+    if (this.is_property) {
+      if (this.next) return this.next;
+      if (this.prev) return this.prev;
+    }
+
+    let i = this.parent.codes.indexOf(this) + 1;
+    let c = i < this.parent.codes.length ? this.parent.codes[i] : undefined;
+    while (c) {
+      let ci = c.first_select();
+      if (ci) return ci;
+      c = c.next;
+    }
+    c = this.parent;
+    while (!c.is_select) {
+      c = c.parent;
+    }
+    return c;
+  }
 
   /* return CodeView and atom selected */
   next_select(include_children = true) {
@@ -477,8 +522,19 @@ export class CodeView {
       let ci = this.next.first_select();
       if (ci) return ci;
     }
-
+    // console.log("this.next", c);
     return p.next_select(false);
+  }
+
+  /***
+   * Depends on what it is. IT selects parent or previous object
+   */
+  parent_prev_select() {
+    if (!this.is_block) {
+      return this.prev_select();
+    }
+    if (this.parent == null) return this;
+    return this.parent;
   }
 
   prev_line() {
@@ -529,6 +585,7 @@ export class CodeView {
   }
 
   down_select() {
+    // console.log("down select o;");
     if (this.parent == null) {
       return this.next_select(true);
     }
@@ -563,14 +620,29 @@ export class CodeView {
     return this.code.toJSON();
   }
 
+  get infoc() {
+    return this.info + "[" + this.code.info + "]";
+  }
+
   get info() {
-    return this.model.name + "/" + this.edit_text.substr(0, 10);
+    // console.log(this.edit_text);
+    return (
+      this.model.name +
+      "/" +
+      (this.type == VIEW_PROPERTY
+        ? this.value[this.header.display_key] + ":"
+        : "") +
+      this.edit_text.substr(0, 10) +
+      " (" +
+      this.id +
+      ")"
+    );
   }
 
   get infod() {
-    let t = this.info;
+    let t = this.infoc;
     for (let cv of this.code_views) {
-      t += "\n  " + cv.infod.replace("\n  ", "\n    ");
+      t += "\n " + cv.infod.replaceAll("\n ", "\n  ");
     }
     return t;
   }
