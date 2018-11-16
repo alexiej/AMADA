@@ -10,8 +10,7 @@
         <div class="amada-content" >
           <amada-code 
           ref="amada-code"
-          :class="[part_view.code_view==part_view.cursor_line ? 'selected-line' : '',
-                    part_view.code_view==part_view.cursor_code ? 'selected-code' : '']"
+          :class="[part_view.code_view==part_view.cursor_code ? 'selected-code' : '']"
           :code_view="part_view.code_view" :part_view="part_view" />
       </div>
 
@@ -94,8 +93,6 @@ export default {
  
          if (element == undefined) return;
         let text = code_view.edit_text;
-
-        // console.log('A'+code_view.edit_text+'A');
 
         element.textContent =  text.substr(0, pos) ; //text.substr(0, pos);
         // element.className = "edited";

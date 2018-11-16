@@ -24,9 +24,7 @@ export function __get_cursor_line(text, pos) {
     p += l.length;
     t += 1;
   }
-  // console.log("t", t);
   return t;
-  // console.log(l);
 }
 
 export default class PartView {
@@ -51,6 +49,10 @@ export default class PartView {
     this.counter = 0;
     this._component_id = -1;
     this.code_view = this.get_view(this.part.section);
+
+    console.log(this.part.section.infod);
+    console.log(this.code_view.infod);
+    console.log(this.part.section);
 
     // let cc = this.codes.length > 0 ? this.codes[0] : undefined;
     let cc = this.code_view.next_select();

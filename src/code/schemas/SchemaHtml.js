@@ -74,7 +74,11 @@ const convert_function = (model, code) => {
   ) {
     return model.create(code.model.name, [], [code]);
   }
-  return model.create(code.value, code.properties, code.codes);
+  return model.create(
+    code.value,
+    model.properties(code.properties),
+    code.codes
+  );
 };
 
 const convert_content = (model, code) => {
@@ -187,7 +191,7 @@ function create_codes(schema, json) {
         // console.log(tag.type, tagName, tag.children);
         code = model.create(
           tag.tagName,
-          tag.attributes,
+          model.properties(tag.attributes),
           create_codes(schema, tag.children)
         );
         codes.push(code);

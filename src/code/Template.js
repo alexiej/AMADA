@@ -31,6 +31,14 @@ function __set_key_value(property) {
   return property;
 }
 
+const view_class_table = [
+  "view-group",
+  "view-value",
+  "view-text",
+  "view-line",
+  "view-section"
+];
+
 /**
  * This is a class of the view of the model.
  * Header, footer and properties
@@ -87,16 +95,12 @@ export class Template {
   }
 
   get is_block() {
-    return this.type < 0;
+    return this.view_type < 0;
   }
 
-  // get is_whole_select() {
-  //   return (
-  //     this.type == TEMPLATE_SECTION ||
-  //     this.type == TEMPLATE_GROUP ||
-  //     this.type == TEMPLATE_LINE
-  //   );
-  // }
+  get view_class() {
+    return view_class_table[this.view_type + 1];
+  }
 
   get is_section() {
     return this.type_type == VIEW_SECTION;

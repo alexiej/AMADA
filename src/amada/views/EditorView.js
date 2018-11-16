@@ -52,7 +52,6 @@ export default class EditorView extends View {
   }
 
   get lang() {
-    // console.log(this.schema);
     return this.schema.lang;
   }
 
@@ -60,10 +59,8 @@ export default class EditorView extends View {
     return this.file.schema;
   }
 
-  //
   save() {
     this.file.save();
-    // console.log("A", this.file.preview());
   }
 
   set_part_view_id(val) {

@@ -1,4 +1,5 @@
 import Code from "./Code";
+import Property from "./Property";
 // import { View } from "./View";
 // import ModelCreator from "./ModelCreator";
 // export const MODEL_SECTION = -2;
@@ -76,5 +77,17 @@ export class Model {
 
   create(value, properties = [], codes = []) {
     return this.create_function(this, value, properties, codes);
+  }
+
+  properties(list) {
+    let arr = [];
+    for (let l of list) {
+      arr.push(this.property(l.key, l.value));
+    }
+    return arr;
+  }
+
+  property(key, value) {
+    return new Property(key, value);
   }
 }

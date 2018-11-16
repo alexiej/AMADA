@@ -1,12 +1,15 @@
 <template>
   <div 
-  :class="[code_view.component_class, code_view.code_class]"  
-  class="amada-code" :id="code_view.id">
-    <span v-if="code_view.has_header" class="header">
-      <span v-if="code_view.header.prefix!=''">{{code_view.header.prefix}}</span>
-      <span v-if="code_view.header.display_val!=''" :id="code_view.val_id"
+  :class="[view.component_class, view.view_class]"  
+  class="amada-code" :id="id">
+    <span v-if="view.has_header" class="header">
+      <span v-if="view.header.prefix!=''">{{view.header.prefix}}</span>
+      <span 
+      v-if="view.header.display_val!=''" 
+      :id="id"
       :class="{'edited': code_view.val_id == code_view.edit_id }"
-       class="val">{{code_view.value[code_view.header.display_val]}}</span>
+      class="val">{{code[view.header.display_val]}}</span>
+
       <span v-if="code_view.has_properties" class="properties">
           <span class="prefix">{{code_view.properties.prefix}}</span>
           <span v-for="pv in code_view.props" :key="pv.id"
@@ -15,8 +18,7 @@
              :class="[pv.component_class,
                       pv.code_class, pv==part_view.cursor_line ? 'selected-line' : '',
                      pv==part_view.cursor_code ? 'selected-code' : '']"
-          >
-          
+          > 
             <span class="prefix">{{pv.property.prefix}}</span>
             <span class="key" :id="pv.key_id" :class="{'edited': pv.key_id == pv.edit_id }"  >{{pv.value[pv.property.display_key]}}</span>
               <span class="between">{{pv.property.between}}</span>
@@ -36,8 +38,7 @@
     <span v-if="code_view.has_codes" class="codes">
         <component  :key="cv.id" 
                     :part_view="part_view"
-                    :class="[cv==part_view.cursor_line ? 'selected-line' : '',
-                              cv==part_view.cursor_code ? 'selected-code' : '']"
+                    :class="[cv==part_view.cursor_code ? 'selected-code' : '']"
                     v-for="cv in code_view.codes" 
                     :code_view="cv"
                     v-bind:is="cv.component_name">
@@ -45,18 +46,33 @@
     </span>
 
 
-    <span v-if="code_view.has_footer" class="footer">
-        <span v-if="code_view.footer.prefix!=''">{{code_view.footer.prefix}}</span>
-      <span v-if="code_view.footer.display_val!=''" :id="code_view.val_id + '-footer'" >{{code_view.value[code_view.footer.display_val]}}</span>  
-      <span v-if="code_view.footer.suffix!=''">{{code_view.footer.suffix}}</span>
+    <span v-if="view.has_footer" class="footer">
+        <span v-if="view.footer.prefix!=''">{{view.footer.prefix}}</span>
+      <span v-if="view.footer.display_val!=''" :id="code_view.val_id + '-footer'" >{{code_view.value[code_view.footer.display_val]}}</span>  
+      <span v-if="view.footer.suffix!=''">{{view.footer.suffix}}</span>
     </span>
   </div>
 </template> 
 <script>
 export default {
   name: "amada-code",
+  data() {
+    return {
+      edit_key: ''
+    }
+  },
   props: ["code_view", "part_view"],
-  getters: {
+  computed: {
+    code() {
+      return this.code_view.code;
+    },
+    view() {
+      return this.part_view.template[this.code_view.code.view_id];
+    },
+
+    id() {
+      return this.part_view.id + "/" + this.code_view.code.id;
+    }
   }
 };
 </script>
