@@ -10,10 +10,9 @@
         <div class="amada-content" >
           <amada-code 
           ref="amada-code"
-          :class="[part_view.code_view==part_view.cursor_code ? 'selected-code' : '']"
-          :code_view="part_view.code_view" :part_view="part_view" />
+          :class="[part_view.section==part_view.cursor ? 'selected-code' : '']"
+          :code="part_view.section" :part_view="part_view" />
       </div>
-
 
  </div>
 </template>
@@ -74,45 +73,36 @@ export default {
     this.$amada.components_connect(this, this.part_view);
   },
   methods: {
-    scroll_top() {
-      let n = (this.part_view.top - 5) * this.lineSize;
-      this.$el.scrollTop = n <= 0 ? 0 : n;
-    },
+    // scroll_top() {
+    //   let n = (this.part_view.top - 5) * this.lineSize;
+    //   this.$el.scrollTop = n <= 0 ? 0 : n;
+    // },
 
     cursor_next_line(code, id, text) {
       var element = document.getElementById(id);
       if (element == undefined) return;
     },
 
-    cursor_to_code(code_view, pos = 0) {
-      // console.log('pos',pos);
+    cursor_to_code(code_key, text, pos = 0) {
+      // console.log(code_key,text,pos);
       var v = this;
       Vue.nextTick(function() {
-
-         var element = document.getElementById(code_view.edit_id);
- 
+         var element = document.getElementById(code_key);
          if (element == undefined) return;
-        let text = code_view.edit_text;
 
         element.textContent =  text.substr(0, pos) ; //text.substr(0, pos);
-        // element.className = "edited";
-        // element.textContent = "\n";
-
-        // element.innerHTML = text.substr(0, pos).replace(/\n\r?/g, '<br /> ');
-        // console.log('X' + text + 'X');
         
         var cursor = v.$refs["cursor"];
         var parent = v.$refs["editor"];
-        // console.log(parent.$el, v.$refs);
-        //  console.log(cursor.$el.offsetLeft, element.offsetLeft);
+
         element.appendChild(cursor.$el);
-        // console.log( getTotal(cursor.$el, parent));
         let top = element.offsetTop +  cursor.$el.offsetTop;
         let left = getTotal(cursor.$el, parent) ;
+        // console.log(left);
   
         element.appendChild(document.createTextNode(text.substr(pos)));
         v.$el.scrollTop = top  - 5 * v.lineSize;
-        v.$el.scrollLeft = left[0]  - 50;
+        v.$el.scrollLeft = left[0]  - 150;
       })
     },
 

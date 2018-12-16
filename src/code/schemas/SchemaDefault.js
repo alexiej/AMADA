@@ -6,6 +6,7 @@ import {
   VIEW_GROUP,
   VIEW_LINE,
   VIEW_SECTION,
+  VIEW_VALUE,
   VIEW_TEXT
 } from "../../amada/views/CodeView";
 
@@ -62,12 +63,14 @@ export function templates_default(templates = {}) {
     text: new Template({
       component_class: "text",
       view_type: VIEW_GROUP,
+      is_block: false,
       is_select: true
     }),
     content: new Template({
       component_class: "content",
       component_name: "amada-content",
-      view_type: VIEW_LINE,
+      view_type: VIEW_TEXT,
+      is_block: false,
       is_select: true,
       header: {
         is_visible: true,
@@ -82,11 +85,13 @@ export function templates_default(templates = {}) {
     inline: new Template({
       component_class: "inline",
       view_type: VIEW_GROUP,
+      is_block: false,
       is_select: true
     }),
     line: new Template({
       component_class: "line",
       view_type: VIEW_LINE,
+      is_block: true,
       is_select: true,
       header: {
         is_visible: true,
@@ -101,6 +106,7 @@ export function templates_default(templates = {}) {
     key: new Template({
       component_class: "key",
       view_type: VIEW_LINE,
+      is_block: true,
       is_select: true,
       header: {
         is_visible: true,
@@ -118,6 +124,7 @@ export function templates_default(templates = {}) {
     section: new Template({
       component_class: "section",
       view_type: VIEW_SECTION,
+      is_block: true,
       is_select: true,
       header: {
         is_visible: true,
@@ -137,6 +144,7 @@ export function templates_default(templates = {}) {
       component_class: "comment",
       component_name: "amada-content",
       view_type: VIEW_SECTION,
+      is_block: true,
       is_select: true,
       header: {
         is_visible: true,
@@ -153,6 +161,7 @@ export function templates_default(templates = {}) {
     "section-part": new Template({
       component_class: "section-part",
       view_type: VIEW_SECTION,
+      is_block: true,
       is_select: true,
       header: {
         is_visible: true,

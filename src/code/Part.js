@@ -14,18 +14,97 @@ export default class Part {
     this.name = name;
     this.schema = schema;
 
-    this.counter = 1;
-    //<-we've got one section
+    this.counter = 0;
     this.code_lines = [];
 
     this.section = schema.models["section-part"].create(this.name);
     this.section.id = 0;
     this.section.part = this;
 
-    this.add_codes(codes); //<-add codes to the section that has no lines before and after
+    this.codes_add(codes); //<-add codes to the section that has no lines before and after
   }
 
-  delete(code, include_children = false) {
+  __get_counter() {
+    this.counter += 1;
+    return this.counter;
+  }
+
+  __codes_add(parent, codes) {
+    for (let c of codes) {
+      this.__code_add(parent, c);
+    }
+  }
+
+  __code_add(parent, code) {
+    code.parent = parent;
+    if (code.part == this) {
+      for (let p of code.properties) {
+        p.code = code;
+      }
+      return; // we don't need to add code when it is there
+    }
+
+    code.part = this;
+    code.id = this.__get_counter();
+
+    for (let p of code.properties) {
+      p.code = code;
+      p.id = this.__get_counter();
+    }
+
+    this.__codes_add(code, code.codes);
+  }
+
+  property_del(property) {
+    let i = property.code.properties.indexOf(property);
+    property.code.properties.splice(i, 1);
+  }
+
+  property_insert(key, value, code, i = -1) {
+    let p = code.model.property(key, value);
+    p.code = code;
+    p.id = this.__get_counter();
+
+    if (i < 0) {
+      code.properties.push(p);
+    } else {
+      code.properties.splice(i, 0, p);
+    }
+    return p;
+  }
+
+  //create new code, with selected model
+  codes_add(codes) {
+    this.__codes_add(this.section, codes);
+    this.section.codes.push(...codes);
+  }
+
+  code_add(code) {
+    this.__code_add(this.section, code);
+    this.section.codes.push(code);
+  }
+
+  code_replace(new_code, replace_code) {
+    let parent = replace_code.parent;
+    this.__code_add(parent, new_code);
+    parent.codes.splice(parent.codes.indexOf(replace_code), 1, new_code);
+    return new_code;
+  }
+
+  code_insert(code, parent, i = -1) {
+    this.__code_add(parent, code);
+    if (i < 0) parent.codes.push(code);
+    else parent.codes.splice(i, 0, code);
+    return code;
+  }
+
+  add_children(parent, code) {
+    this.__code_add(parent, code);
+    parent.codes.push(code);
+    return code;
+  }
+
+  code_del(code, include_children = false) {
     let parent = code.parent;
     let i = parent.codes.indexOf(code);
     if (!include_children) {
@@ -34,83 +113,5 @@ export default class Part {
       insertArrayAt(parent.codes, i + 1, code.codes);
     }
     parent.codes.splice(i, 1);
-  }
-
-  delete_property(code, property) {
-    let i = code.properties.indexOf(property);
-    code.properties.splice(i, 1);
-  }
-
-  add_property(key, value, code, before = undefined) {
-    let p = {
-      key: key,
-      value: value
-    };
-    if (before == undefined) {
-      code.properties.push(p);
-    } else {
-      let i = code.properties.indexOf(before);
-      code.properties.splice(i, 0, p);
-    }
-    return p;
-  }
-
-  //create new code, with selected model
-  add_codes(codes) {
-    this.__add_codes(this.section, codes);
-    this.section.codes.push(...codes);
-  }
-
-  add(code) {
-    this.__add(this.section, code);
-    this.section.codes.push(code);
-  }
-
-  __add_codes(parent, codes) {
-    for (let c of codes) {
-      this.__add(parent, c);
-    }
-  }
-
-  add_children(parent, code) {
-    this.__add(parent, code);
-    parent.codes.push(code);
-    return code;
-  }
-
-  __add(parent, code) {
-    if (code.part == this) return; // we don't need to add code when it is there
-
-    this.counter += 1;
-
-    code.part = this;
-    code.parent = parent;
-    code.id = this.counter;
-    this.__add_codes(code, code.codes);
-  }
-
-  replace(new_code, replace_code) {
-    let parent = replace_code.parent;
-    this.__add(parent, new_code);
-    parent.codes.splice(parent.codes.indexOf(replace_code), 1, new_code);
-    return new_code;
-  }
-
-  add_after(after, code) {
-    if (!after.parent == null) return; //<- we cannot add after section part
-    this.__add(after.parent, code);
-    let p = after.parent;
-    let i = p.codes.indexOf(after);
-    p.codes.splice(i + 1, 0, code);
-    return code;
-  }
-
-  add_before(after, code) {
-    if (!after.parent == null) return; //<- we cannot add after section part
-    this.__add(after.parent, code);
-    let p = after.parent;
-    let i = p.codes.indexOf(after);
-    p.codes.splice(i, 0, code);
-    return code;
   }
 }

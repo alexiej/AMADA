@@ -19,7 +19,7 @@
     </div>
     <div class="amada-properties">
       <div class="title">
-        {{editor_view.part_view.cursor_code.model.name}}:{{editor_view.part_view.cursor_code.display_key}}
+        {{editor_view.part_view.cursor.key}}:{{editor_view.part_view.cursor.val}}
       </div>
 
       <div class="amada-allowed" v-show="editor_view.is_allowed">
@@ -62,7 +62,6 @@ export default {
     allowed_update(ev) {
       if(this.filteredItems.length<=0) return;
       this.editor_view.allowed_select(ev);
-
     },
     set_allowed() {
       this.name = '';

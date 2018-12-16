@@ -19,6 +19,32 @@ export default class Code {
     this.codes = codes; //<- list of codes assign to the code
   }
 
+  //real key value
+  get key() {
+    return this.model.name;
+  }
+
+  set key(v) {
+    this.model.name = v;
+  }
+
+  get key_id() {
+    return this.id + "/key";
+  }
+
+  //real val value
+  get val() {
+    return this.value;
+  }
+
+  set val(v) {
+    this.value = v;
+  }
+
+  get val_id() {
+    return this.id + "/val";
+  }
+
   add(code) {
     code.parent = this;
     this.codes.push(code);
@@ -45,43 +71,59 @@ export default class Code {
     return filterByKeys(this.schema.models, this.model.allowed(this));
   }
 
-  /**
-   * Standard operation to get the left/right/up and down code
-   */
-  next(include_children = true) {
-    let c = this;
-    if (c.has_codes && include_children) {
-      return c.codes[0];
+  ///<--------------SIMULATION
+  next(include_children = true, include_properties = true) {
+    if (include_properties && this.has_properties) {
+      return this.properties[0];
+    }
+    if (include_children && this.has_codes) {
+      return this.codes[0];
     }
 
-    let p = c.parent;
+    let p = this.parent;
     if (p == undefined) {
-      return c.last();
+      if (!include_children) {
+        let last = this.last();
+        let section_last = this.part.section.last();
+
+        if (last == section_last) {
+          return this.part.section;
+        }
+        return section_last;
+      }
+
+      // if(last==)
+      return this.part.section.last();
     }
-    let ind = p.codes.indexOf(c) + 1;
-    if (ind >= p.codes.length) {
-      return p.next(false);
-    } else {
-      return p.codes[ind];
-    }
+
+    let i = p.codes.indexOf(this);
+    if (i + 1 < p.codes.length) return p.codes[i + 1];
+
+    return p.next(false, false);
   }
 
-  prev() {
-    let c = this;
-    let p = c.parent;
-    if (p == undefined) return c;
+  prev(includes_codes = true, include_properties = true) {
+    let p = this.parent;
+    if (p == undefined) return this.part.section;
+    // console.log("prev");
 
-    let ind = p.codes.indexOf(c) - 1;
-    if (ind < 0) {
-      return p;
-    } else {
-      return p.codes[ind].last();
+    let i = p.codes.indexOf(this) - 1;
+    if (i >= 0) {
+      return p.codes[i].last(include_properties);
     }
+    if (include_properties && p.has_properties) {
+      return p.properties[p.properties.length - 1];
+    }
+
+    return p;
   }
 
-  last() {
+  last(include_properties = true) {
     if (this.has_codes) {
-      return this.codes[this.codes.length - 1].last();
+      return this.codes[this.codes.length - 1].last(include_properties);
+    }
+    if (include_properties && this.has_properties) {
+      return this.properties[this.properties.length - 1];
     }
     return this;
   }
@@ -119,12 +161,14 @@ export default class Code {
     if (this.has_properties) {
       p_text = " (";
       for (let p of this.properties) {
-        p_text += p.key + ":" + p.value + ",";
+        p_text += p.info + ",";
       }
       p_text += ")";
     }
 
-    return this.model.name + p_text + "/" + this.id;
+    return (
+      this.model.name + ":" + this.val.substr(0, 10) + p_text + "/" + this.id
+    );
   }
 
   get infod() {

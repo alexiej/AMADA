@@ -33,8 +33,7 @@ export default class PartView {
     part,
     template = undefined, //<- default list of views for the tempalte
     section_id = "", //<- current section
-    code_id = "", //<-  current code in the section
-    pos = 0 //<- position from the section
+    code_id = "" //<-  current code in the section
   ) {
     this.editor_view = editor_view;
     this.id = this.get_id();
@@ -43,92 +42,33 @@ export default class PartView {
 
     this.section_id = section_id;
     this.code_id = code_id;
-    this.left = pos;
-    this.top = 0;
+    // this.top = 0;
 
     this.counter = 0;
     this._component_id = -1;
-    this.code_view = this.get_view(this.part.section);
+    // this.code_view = this.part.section; // //this.get_view(this.part.section);
 
-    console.log(this.part.section.infod);
-    console.log(this.code_view.infod);
-    console.log(this.part.section);
+    // console.log(this.infod);
+    // console.log(this.code_view.infod);
+    // console.log(this.section);
 
     // let cc = this.codes.length > 0 ? this.codes[0] : undefined;
-    let cc = this.code_view.next_select();
-    this.cursor_code = cc;
+    // let cc = this.code_view; //this.code_view.next_select();
+    this.cursor = this.section;
     this.cursor_pos = 0;
+
+    this.edit_id = ""; //<-set
+    this.edit_is_val = true; //<if we edit val or a key
+
     this.cursor_x = 0; //<current cursor line
     this.cursor_y = 0; //<current cursor position
 
     this.preview_visible = false;
   }
 
-  delete(code_view, include_children = false) {
-    if (code_view.is_property) {
-      this.part.delete_property(code_view.code, code_view.value);
-    } else {
-      this.part.delete(code_view.code, include_children);
-    }
-    code_view.parent.delete(code_view, include_children);
-  }
-
-  // before and after a property
-  add_property(key, value, code_view, before = undefined) {
-    if (before != undefined) {
-      let p = this.part.add_property(key, value, code_view.code, before.value);
-      let pv = this.get_property_view(p, code_view.code);
-      code_view.add_prop_before(before, pv);
-      return pv;
-    } else {
-      let p = this.part.add_property(key, value, code_view.code);
-
-      let pv = this.get_property_view(p, code_view.code);
-      code_view.add_prop(pv);
-      return pv;
-    }
-  }
-
-  add_children(code_view, code) {
-    let c = this.part.add_children(code_view.code, code);
-    let cv = this.get_view(c);
-    code_view.add(cv);
-    return cv;
-  }
-
-  add_after(code_view, code) {
-    let c = this.part.add_after(code_view.code, code);
-    let cv = this.get_view(c);
-    code_view.parent.add_after(code_view, cv);
-    return cv;
-  }
-
-  add_before(code_view, code) {
-    let c = this.part.add_before(code_view.code, code);
-    let cv = this.get_view(c);
-    code_view.parent.add_before(code_view, cv);
-    return cv;
-  }
-
-  replace(new_code, replace_code_view, code = undefined) {
-    this.part.replace(new_code, replace_code_view.code);
-    if (code) {
-      new_code.add(code);
-    }
-    let new_code_view = this.get_view(new_code);
-    replace_code_view.parent.replace(new_code_view, replace_code_view);
-    return new_code_view;
-  }
-
-  get cursor_text() {
-    return this.cursor_code.edit_text;
-  }
-
-  set cursor_text(val) {
-    this.cursor_code.edit_text = val;
-    this.code_change();
-  }
-
+  /**
+   * Global
+   */
   get amada() {
     return this.editor_view.amada;
   }
@@ -149,13 +89,199 @@ export default class PartView {
     return this.part.section.codes;
   }
 
+  get infod() {
+    return "P/" + this.section.infod;
+  }
+
+  get section() {
+    return this.part.section;
+  }
+
+  /**
+   *
+   * CURSOR
+   */
+
+  get cursor_view() {
+    return this.template[this.cursor.view_id];
+  }
+
+  get cursor_text() {
+    return this.edit_is_val ? this.cursor.val : this.cursor.key;
+  }
+
+  get cursor_key() {
+    return (
+      this.id +
+      "/" +
+      (this.edit_is_val ? this.cursor.val_id : this.cursor.key_id)
+    );
+  }
+
+  set cursor_text(val) {
+    if (this.edit_is_val) this.cursor.val = val;
+    else this.cursor.key = val;
+    this.code_change();
+  }
+
+  cursor_pos_set(pos = 0) {
+    let t = this.cursor_text;
+    // let p = this.cursor_pos;
+    if (t == undefined) return;
+
+    // console.log(this.cursor_text, !this.cursor_text);
+    if (!t) pos = 0;
+    else {
+      pos = pos > t.length ? 0 : pos < 0 ? t.length : pos;
+    }
+
+    this.cursor_pos = pos;
+    this.cursor_y = __get_cursor_line(t, pos);
+    this.cursor_x = pos - __get_prev_line_pos(t, pos);
+
+    let component = this.amada.components[this._component_id];
+    if (component == undefined) return;
+    component.cursor_to_code(
+      this.cursor_key,
+      this.cursor_text,
+      this.cursor_pos
+    );
+  }
+
+  cursor_set(code, pos = 0) {
+    this.cursor = code;
+    this.cursor_pos_set(pos);
+  }
+
+  /**
+   * Global END
+   */
+
   code_change() {
     if (this.preview_visible) {
       this.editor_view.preview_update();
     }
   }
 
-  add_text(text) {
+  /**
+   * Selection mode
+   */
+  cursor_prev() {
+    this.cursor_set(this.cursor.prev());
+  }
+
+  cursor_next(include_children = true) {
+    this.cursor_set(this.cursor.next(include_children));
+  }
+
+  cursor_up() {
+    if (this.cursor.is_property) {
+      return this.cursor_set(this.cursor.code);
+    }
+
+    let c = this.cursor.prev(true, false);
+    let v = this.template[c.view_id];
+
+    // console.log(this.cursor, c, v);
+
+    while (c != undefined && !v.is_block) {
+      c = c.prev(true, false);
+      v = this.template[c.view_id];
+    }
+
+    return c ? this.cursor_set(c) : this.cursor_set(this.part.section);
+  }
+
+  cursor_down_item() {
+    if (this.cursor.is_property) {
+      // return this.cursor_set(this.cursor.code.next(true, false));
+      let p = this.cursor.code;
+      let i = p.properties.indexOf(this.cursor) + 1;
+      if (i > p.properties.length - 1) return this.cursor_set(p.properties[0]);
+      else return this.cursor_set(p.properties[i]);
+    }
+    let p = this.cursor.parent;
+    if (p == undefined) return;
+    let i = p.codes.indexOf(this.cursor) + 1;
+    if (i > p.codes.length - 1) return this.cursor_set(p.codes[0]);
+    else return this.cursor_set(p.codes[i]);
+  }
+
+  cursor_up_item() {
+    if (this.cursor.is_property) {
+      // return this.cursor_set(this.cursor.code.next(true, false));
+      let p = this.cursor.code;
+      let i = p.properties.indexOf(this.cursor) - 1;
+      if (i < 0) return this.cursor_set(p.properties[p.properties.length - 1]);
+      else return this.cursor_set(p.properties[i]);
+    }
+    let p = this.cursor.parent;
+    if (p == undefined) return;
+    let i = p.codes.indexOf(this.cursor) - 1;
+    if (i < 0) return this.cursor_set(p.codes[p.codes.length - 1]);
+    else return this.cursor_set(p.codes[i]);
+  }
+
+  cursor_next_item() {
+    if (this.cursor.is_property) {
+      // return this.cursor_set(this.cursor.code.next(true, false));
+      let p = this.cursor.code;
+      let i = p.properties.indexOf(this.cursor) + 1;
+      if (i > p.properties.length - 1) return this.cursor_set(p.properties[0]);
+      else return this.cursor_set(p.properties[i]);
+    }
+    return this.cursor_set(this.cursor.next(true, false));
+  }
+
+  cursor_prev_item() {
+    if (this.cursor.is_property) {
+      // return this.cursor_set(this.cursor.code.next(true, false));
+      let p = this.cursor.code;
+      let i = p.properties.indexOf(this.cursor) - 1;
+      if (i < 0) return this.cursor_set(p.properties[p.properties.length - 1]);
+      else return this.cursor_set(p.properties[i]);
+    }
+    if (this.cursor.parent == undefined) return;
+    return this.cursor_set(this.cursor.parent);
+  }
+
+  cursor_down() {
+    if (this.cursor.is_property) {
+      return this.cursor_set(this.cursor.code.next(true, false));
+    }
+    let c = this.cursor;
+
+    c = c.next(true, false);
+    let v = this.template[c.view_id];
+    while (c != undefined && !v.is_block) {
+      c = c.next(true, false);
+      v = this.template[c.view_id];
+    }
+
+    return c ? this.cursor_set(c) : this.cursor_set(this.part.section);
+  }
+
+  /***
+   *
+   * EDITOR MODE, EDIT TEXT
+   */
+  get edit_is_available() {
+    // console.log(this.cursor, this.part.section);
+    return this.cursor != this.part.section;
+  }
+
+  edit_on(is_val = true) {
+    this.edit_is_val = is_val;
+    this.edit_id = this.cursor_key;
+    this.cursor_pos_set(0);
+  }
+
+  edit_off() {
+    this.edit_id = undefined;
+    this.edit_is_val = true;
+  }
+
+  edit_add(text) {
     let a = this.cursor_text;
     // console.log(a);
     let text2 = [
@@ -163,42 +289,47 @@ export default class PartView {
       text,
       a.slice(this.cursor_pos)
     ].join("");
-    // console.log(text);
 
     this.cursor_text = text2;
-    this.cursor_code_pos(this.cursor_pos + 1);
+    this.cursor_pos_set(this.cursor_pos + 1);
     this.code_change();
   }
 
-  back_text() {
-    let a = this.cursor_text;
+  edit_backspace() {
+    let t = this.cursor_text;
+    let p = this.cursor_pos;
 
-    if ((this.cursor_pos > 0) & (a.length > 0)) {
-      a = a.slice(0, this.cursor_pos - 1) + a.slice(this.cursor_pos);
-
-      this.cursor_text = a;
-      this.cursor_code_pos(this.cursor_pos - 1);
+    if ((p > 0) & (t.length > 0)) {
+      this.cursor_text = t.slice(0, p - 1) + t.slice(p);
+      this.cursor_pos_set(p - 1);
     }
     this.code_change();
   }
 
-  del_text() {
-    let a = this.cursor_text;
+  edit_delete() {
+    let t = this.cursor_text;
+    let p = this.cursor_pos;
 
-    if ((this.cursor_pos < this.cursor_text.length) & (a.length > 0)) {
-      a = a.slice(0, this.cursor_pos) + a.slice(this.cursor_pos + 1);
-      this.cursor_text = a;
-      this.cursor_code_pos(this.cursor_pos);
+    if ((p < t.length) & (t.length > 0)) {
+      this.cursor_text = t.slice(0, p) + t.slice(p + 1);
+      this.cursor_pos_set(p);
     }
     this.code_change();
   }
 
-  cursor_next_line(pos = 0) {
-    let next_enter = __get_next_line_pos(this.cursor_text, pos);
+  edit_next(par = 1) {
+    this.cursor_pos_set(this.cursor_pos + par);
+  }
+
+  edit_prev(par = 1) {
+    this.cursor_pos_set(this.cursor_pos - par);
+  }
+
+  edit_next_line() {
+    let next_enter = __get_next_line_pos(this.cursor_text, this.cursor_pos);
 
     if (next_enter > 0) {
       let second_enter = __get_next_line_pos(this.cursor_text, next_enter);
-
       next_enter += this.cursor_x;
 
       next_enter =
@@ -211,33 +342,15 @@ export default class PartView {
           ? this.cursor_text.length
           : next_enter;
       // console.log("k enter", next_enter, this.cursor_x, second_enter);
-      this.cursor_code_pos(next_enter);
+      this.cursor_pos_set(next_enter);
     } else {
       // pos = this.cursor_x;
-      this.cursor_code_pos(this.cursor_x);
+      this.cursor_pos_set(this.cursor_x);
     }
   }
 
-  cursor_first_in_line(par) {
-    let curr_enter = __get_prev_line_pos(this.cursor_text, par);
-    // console.log(curr_enter, par, "cursor_first_in_inline");
-
-    if (curr_enter >= 0) {
-      this.cursor_code_pos(curr_enter);
-    }
-  }
-
-  cursor_last_in_line(par) {
-    let curr_enter = __get_next_line_pos(this.cursor_text, par);
-    if (curr_enter > 0) {
-      this.cursor_code_pos(curr_enter - 1);
-    } else {
-      this.cursor_code_pos(this.cursor_text.length);
-    }
-  }
-
-  cursor_prev_line(pos = 0) {
-    let curr_enter = __get_prev_line_pos(this.cursor_text, pos);
+  edit_prev_line() {
+    let curr_enter = __get_prev_line_pos(this.cursor_text, this.cursor_pos);
     let prev_enter = 0;
 
     if (curr_enter <= 0) {
@@ -252,74 +365,27 @@ export default class PartView {
 
     if (prev_enter >= 0) {
       prev_enter += this.cursor_x;
-      // console.log({ curr_enter, prev_enter, x: this.cursor_x });
 
       if (prev_enter >= curr_enter) {
         prev_enter = curr_enter - 1;
       }
-      this.cursor_code_pos(prev_enter);
+      this.cursor_pos_set(prev_enter);
     }
   }
 
-  cursor_code_pos(pos = 0) {
-    if (this.cursor_text == undefined) return;
-    // console.log(this.cursor_text, !this.cursor_text);
-    if (!this.cursor_text) pos = 0;
-    else {
-      pos =
-        pos > this.cursor_text.length
-          ? 0
-          : pos < 0
-            ? this.cursor_text.length
-            : pos;
+  edit_first_in_line() {
+    let curr_enter = __get_prev_line_pos(this.cursor_text, this.cursor_pos);
+    if (curr_enter >= 0) {
+      this.cursor_pos_set(curr_enter);
     }
-
-    this.cursor_pos = pos;
-    this.cursor_y = __get_cursor_line(this.cursor_text, this.cursor_pos);
-    this.cursor_x =
-      this.cursor_pos - __get_prev_line_pos(this.cursor_text, this.cursor_pos);
-
-    // console.log({ x: this.cursor_x, pos: this.cursor_pos });
-
-    let component = this.amada.components[this._component_id];
-    if (component == undefined) return;
-    component.cursor_to_code(this.cursor_code, this.cursor_pos);
   }
 
-  cursor_code_set(code, pos = 0) {
-    this.cursor_code = code;
-
-    this.cursor_code_pos(pos);
-  }
-
-  cursor_update() {
-    let component = this.amada.components[this._component_id];
-
-    if (component == undefined) return;
-    component.scroll_top();
-  }
-
-  get_view(code) {
-    if (code.view_id in this.template) {
-      let view = this.template[code.view_id];
-      let code_view = view.get_view(code, this);
-      return code_view;
+  edit_last_in_line() {
+    let curr_enter = __get_next_line_pos(this.cursor_text, this.cursor_pos);
+    if (curr_enter > 0) {
+      this.cursor_pos_set(curr_enter - 1);
     } else {
-      return undefined;
+      this.cursor_pos_set(this.cursor_text.length);
     }
-  }
-
-  get_property_view(p, code) {
-    if (code.view_id in this.template) {
-      let view = this.template[code.view_id];
-      let code_view = view.get_property_view(p, code, this);
-      return code_view;
-    } else {
-      return undefined;
-    }
-  }
-
-  get infod() {
-    return "P/" + this.code_view.infod;
   }
 }

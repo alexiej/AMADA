@@ -8,8 +8,6 @@
       <i class="far fa-eye primary"></i>
               <span class="directory text-cut">{{$amada.editor_view.file.directory}}</span>
 
-            
-      
 
         <strong class="slash">\</strong>
         <span class="name">{{$amada.editor_view.file.name}}</span>
@@ -101,7 +99,6 @@ export default {
     // this.$amada.editor_view.preview();
     // console.log("App.vue: ", path, this.$amada.editor_view);
     // console.log(this.$amada.editor_view)
-
   },
   methods: {
     dev() {

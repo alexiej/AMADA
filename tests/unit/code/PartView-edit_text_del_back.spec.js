@@ -23,12 +23,12 @@ describe("ParView - edit_text_del_back.spec", () => {
     ev.up(100);
     ev.down(1);
     // expect(await json(ev)).to.eq(await jsone(ev, "../test/editor_view_01"));
-    expect(pv.cursor_code.info).to.eq("html/html (3)");
+    expect(pv.cursor.info).to.eq("html:html (lang='en'/2,)/1");
   });
   it("go edit - comment", async () => {
-    ev.down(10);
-    ev.set_mode_edit();
-    expect(pv.cursor_code.info).to.eq("comment/A (21)"); //we are in the comments
+    ev.down(9);
+    ev.mode_set_edit();
+    expect(pv.cursor.info).to.eq("comment:A/19"); //we are in the comments
     expect(ev.mode).to.eq("edit");
   });
 
@@ -36,24 +36,24 @@ describe("ParView - edit_text_del_back.spec", () => {
     // console.log(key("^a"));
     // ev.down(10);
     ev.key(key("a"));
-    let cc = pv.cursor_code;
+    let cc = pv.cursor;
 
     // console.log(cc.edit_text);
-    expect(cc.edit_text).to.eq("aA");
+    expect(cc.val).to.eq("aA");
     expect(pv.cursor_text).to.eq("aA");
-    expect(cc.info).to.eq("comment/aA (21)"); //we are in the comments
+    expect(cc.info).to.eq("comment:aA/19"); //we are in the comments
 
     ev.key(key("Backspace"));
-    expect(cc.edit_text).to.eq("A");
+    expect(cc.val).to.eq("A");
     expect(pv.cursor_text).to.eq("A");
     expect(pv.cursor_pos).to.eq(0);
 
     ev.key(key("Delete"));
-    expect(cc.edit_text).to.eq("");
+    expect(cc.val).to.eq("");
     expect(pv.cursor_text).to.eq("");
 
     ev.key(key("Enter"));
-    expect(cc.edit_text).to.eq("\n");
+    expect(cc.val).to.eq("\n");
     expect(pv.cursor_text).to.eq("\n");
   });
   it("text operations", async () => {});

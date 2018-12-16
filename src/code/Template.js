@@ -1,18 +1,25 @@
 import {
-  CodeView,
-  VIEW_SECTION,
-  VIEW_VALUE,
-  VIEW_PROPERTY,
-  VIEW_LINE,
-  VIEW_GROUP,
-  SOURCE_TEXT,
-  SOURCE_VAL
+  CodeView
+  // VIEW_SECTION,
+  // VIEW_VALUE,
+  // VIEW_PROPERTY,
+  // VIEW_LINE,
+  // VIEW_GROUP,
+  // SOURCE_TEXT,
+  // SOURCE_VAL
 } from "../amada/views/CodeView";
 
 export const TEMPLATE_SECTION = -2;
 export const TEMPLATE_LINE = -1;
 export const TEMPLATE_INLINE = 1;
 export const TEMPLATE_GROUP = 2;
+
+export const VIEW_GROUP = -1;
+export const VIEW_PROPERTY = 0;
+export const VIEW_VALUE = 0;
+export const VIEW_TEXT = 1;
+export const VIEW_LINE = 2; //<- special section that contain a line
+export const VIEW_SECTION = 3; //<-the whole section fo the view
 
 function emptyif(text) {
   if (text === undefined || text == "" || text.trim() == "") return "";
@@ -49,6 +56,7 @@ export class Template {
     view_type = VIEW_SECTION,
     // is_select, // <- can be select only for, is view selectible ?
     is_visble = true, //<
+    is_block = true,
     is_select = true, //true - mean that whole view can be select
     //<- -1 not selectible
     header = {
@@ -85,6 +93,7 @@ export class Template {
     this.component_name = component_name;
     this.component_class = component_class;
     this.view_type = view_type;
+    this.is_block = is_block;
     this.is_visble = is_visble;
     this.is_select = is_select; //<-what element should I Select
 
@@ -94,16 +103,16 @@ export class Template {
     this.property = __set_key_value(property);
   }
 
-  get is_block() {
-    return this.view_type < 0;
-  }
+  // get is_block() {
+  //   return this.view_type > 1;
+  // }
 
   get view_class() {
     return view_class_table[this.view_type + 1];
   }
 
   get is_section() {
-    return this.type_type == VIEW_SECTION;
+    return this.view_type == VIEW_SECTION;
   }
 
   get has_header() {
@@ -125,7 +134,7 @@ export class Template {
       code: code,
       value: p,
       template: this,
-      type: VIEW_PROPERTY,
+      type: -1,
 
       component_class: this.component_class + "-property",
       component_name: this.component_name,

@@ -51,6 +51,9 @@ export default class EditorView extends View {
     this.repeat_text = "";
   }
 
+  /**
+   * GLOBAL
+   */
   get lang() {
     return this.schema.lang;
   }
@@ -59,8 +62,8 @@ export default class EditorView extends View {
     return this.file.schema;
   }
 
-  save() {
-    this.file.save();
+  get part() {
+    return this.part_view.part;
   }
 
   set_part_view_id(val) {
@@ -68,44 +71,75 @@ export default class EditorView extends View {
     this.part_view = this.part_views[val];
   }
 
-  __set_mode(name, mode_text = "") {
+  save() {
+    this.file.save();
+  }
+
+  /**
+   * MODE
+   * @param {*} name
+   * @param {*} mode_text
+   */
+  __mode_set(name, mode_text = "") {
     this.mode = name;
     this.mode_text = mode_text;
   }
 
-  set_mode_edit(par = true, source_event = undefined) {
+  mode_set_edit(is_val = true, source_event = undefined) {
     let pv = this.part_view;
+    if (!pv.edit_is_available) return;
 
-    if (!pv.cursor_code.has_edit) return;
-
-    this.__set_mode("edit");
-
-    if (par) {
-      pv.cursor_code.mode_edit();
-    } else {
-      pv.cursor_code.mode_rename();
-    }
-    pv.cursor_code_set(pv.cursor_code, 0);
+    this.__mode_set("edit");
+    pv.edit_on(is_val);
   }
 
-  set_mode_view() {
+  mode_set_view() {
     let pv = this.part_view;
-    if (pv.cursor_code) pv.cursor_code.mode_edit();
-    this.__set_mode("view");
-    pv.cursor_code_set(pv.cursor_code, 0);
+    this.__mode_set("view");
+    pv.edit_off();
   }
 
   get is_allowed() {
     return this.mode == "replace" || this.mode == "add";
   }
 
+  mode_edit_code(code, pos = 0) {
+    this.part_view.cursor_set(code, pos);
+    this.mode_set_edit(true);
+  }
+
+  key(source_event) {
+    let pv = this.part_view;
+    if (this.mode == "edit") {
+      if (is_alphanum(source_event)) {
+        pv.edit_add(source_event.key);
+      }
+      switch (source_event.key) {
+        case "Backspace":
+          pv.edit_backspace();
+          break;
+        case "^d":
+        case "Delete":
+          pv.edit_delete();
+          break;
+        case "Enter":
+          pv.edit_add("\n");
+          break;
+      }
+    }
+  }
+
+  /**
+   * ALLOWED FUNCTIONS
+   * @param {*} ev
+   */
   allowed_select(ev) {
-    this.set_mode_view();
+    this.mode_set_view();
     this.allowed_function(ev);
   }
 
-  set_allowed(list, allowed_function) {
-    this.allowed_list = list; //pv.cursor_code.parent.allowed();
+  allowed_set(list, allowed_function) {
+    this.allowed_list = list; //pv.cursor.parent.allowed();
     this.allowed_function = allowed_function;
 
     let component = this.amada.components[this._component_id];
@@ -114,153 +148,157 @@ export default class EditorView extends View {
     component.set_allowed();
   }
 
-  edit(code_view, pos = 0) {
-    this.part_view.cursor_code_set(code_view, 0);
-    this.set_mode_edit(true);
+  view_add_children() {
+    let ev = this;
+    let pv = this.part_view;
+    if (!pv.cursor) return;
+
+    if (pv.cursor.is_property) {
+      return this.__view_property_insert(
+        pv.cursor.code,
+        pv.cursor.code.properties.indexOf(pv.cursor) + 1
+      );
+    }
+    if (!pv.cursor.model.allowed) return;
+
+    const func = function(model) {
+      let c = model.create("_name_");
+      ev.part.code_insert(c, ev.view_code);
+      return ev.mode_edit_code(c);
+    };
+    this.view_code = pv.cursor;
+    this.__mode_set("add", "children");
+    this.allowed_set(pv.cursor.allowed(), func);
   }
 
-  /***
-   * Depend on parameters
-   * par: false, only delete parent and don't remove children.
-   * Move children upper.
+  view_add_parent() {
+    let ev = this;
+    let pv = this.part_view;
+    if (!pv.cursor) return;
+    if (pv.cursor == pv.section) {
+      return this.view_add_children();
+    }
+    if (pv.cursor.is_property) {
+      return this.__view_property_insert(
+        pv.cursor.code,
+        pv.cursor.code.properties.indexOf(pv.cursor)
+      );
+    }
+    if (!pv.cursor.parent.model.allowed) return;
+
+    const func = function(model) {
+      let c = model.create("_name_", [], [ev.view_code]);
+      ev.part.code_replace(c, ev.view_code);
+      return ev.mode_edit_code(c);
+    };
+    this.view_code = pv.cursor;
+    this.__mode_set("add", "parent");
+    this.allowed_set(pv.cursor.parent.allowed(), func);
+  }
+
+  __view_property_insert(code, i) {
+    let prop_view = this.part.property_insert("name", "", code, i);
+    return this.mode_edit_code(prop_view);
+  }
+
+  view_add_after() {
+    let ev = this;
+    let pv = this.part_view;
+    if (!pv.cursor) return;
+    if (pv.cursor == pv.section) {
+      return this.view_add_children();
+    }
+
+    if (pv.cursor.is_property) {
+      return this.__view_property_insert(
+        pv.cursor.code,
+        pv.cursor.code.properties.indexOf(pv.cursor) + 1
+      );
+    }
+    if (!pv.cursor.parent.model.allowed) return;
+
+    const func = function(model) {
+      let c = model.create("_name_");
+      let vc = ev.view_code;
+      let i = vc.parent.codes.indexOf(vc);
+      ev.part.code_insert(c, vc.parent, i + 1);
+      return ev.mode_edit_code(c);
+    };
+    this.view_code = pv.cursor;
+    this.__mode_set("add", "after");
+    this.allowed_set(pv.cursor.parent.allowed(), func);
+  }
+
+  view_add_before() {
+    let ev = this;
+    let pv = this.part_view;
+    if (!pv.cursor) return;
+    if (pv.cursor == pv.section) {
+      return this.view_add_children();
+    }
+
+    if (pv.cursor.is_property) {
+      return this.__view_property_insert(
+        pv.cursor.code,
+        pv.cursor.code.properties.indexOf(pv.cursor)
+      );
+    }
+
+    if (!pv.cursor.parent.model.allowed) return;
+
+    const func = function(model) {
+      let c = model.create("_name_");
+      let vc = ev.view_code;
+      let i = vc.parent.codes.indexOf(vc);
+      ev.part.code_insert(c, vc.parent, i);
+      return ev.mode_edit_code(c);
+    };
+    this.view_code = pv.cursor;
+    this.__mode_set("add", "before");
+    this.allowed_set(pv.cursor.parent.allowed(), func);
+  }
+
+  view_replace() {
+    let pv = this.part_view;
+    let ev = this;
+
+    if (!pv.cursor) return;
+    if (pv.cursor.is_property) {
+      return this.mode_set_edit(false);
+    }
+    if (!pv.cursor.parent) return;
+    if (!pv.cursor.parent.model.allowed) return;
+
+    const func = function(model) {
+      let rc = ev.view_code;
+      ev.view_code = undefined;
+      if (!rc) return;
+      let c = ev.part.code_replace(model.convert(rc), rc);
+      return ev.mode_edit_code(c);
+    };
+    this.__mode_set("replace");
+    this.view_code = pv.cursor;
+    this.allowed_set(pv.cursor.parent.allowed(), func);
+  }
+
+  view_delete(include_children = false) {
+    let pv = this.part_view;
+    if (!pv.cursor || pv.section == pv.cursor) return;
+
+    let c = pv.cursor.next(!include_children, false);
+    if (c == pv.cursor) c = pv.section;
+
+    if (pv.cursor.is_property) {
+      this.part.property_del(pv.cursor);
+    } else {
+      this.part.code_del(pv.cursor, include_children);
+    }
+    pv.cursor_set(c, 0);
+  }
+
+  /**
+   * PREVIEW PART
    */
-  delete(par = false, source_event) {
-    let pv = this.part_view;
-    if (!pv.cursor_code || pv.cursor_code.parent == undefined) return;
-
-    // let cc = !par ? pv.cursor_code.first_select(false) : undefined;
-
-    let cc = pv.cursor_code.next_select_or_parent(!par);
-    if (cc == pv.cursor_code || cc == undefined) cc = pv.cursor_code.parent;
-
-    pv.delete(pv.cursor_code, par);
-    pv.cursor_code_set(cc, 0);
-  }
-
-  add_children_function(model) {
-    let code = model.create("_name");
-    let cv = this.part_view.add_children(this.add_code, code);
-    this.edit(cv);
-  }
-
-  add_children() {
-    let pv = this.part_view;
-    if (!pv.cursor_code) return;
-    // if (!pv.cursor_code.parent) return;
-
-    this.__set_mode("add", "children");
-    this.add_code = pv.cursor_code;
-    this.set_allowed(pv.cursor_code.allowed(), this.add_children_function);
-  }
-
-  add_parent_function(model) {
-    let code = model.create("_name");
-    let cv = this.part_view.replace(code, this.add_code, this.add_code.code);
-    this.edit(cv);
-  }
-
-  add_parent() {
-    let pv = this.part_view;
-
-    if (!pv.cursor_code) return;
-    if (!pv.cursor_code.parent) {
-      return this.add_children();
-    }
-
-    this.__set_mode("add", "parent");
-    this.add_code = pv.cursor_code;
-    this.set_allowed(pv.cursor_code.parent.allowed(), this.add_parent_function);
-  }
-
-  add_after_function(model) {
-    // model.create("_name_");
-    // console.log(model.create("name"));
-
-    let cv = this.part_view.add_after(this.add_code, model.create("_name_"));
-    this.edit(cv);
-  }
-
-  add_before_function(model) {
-    model.create("_name_");
-    let cv = this.part_view.add_before(this.add_code, model.create("_name_"));
-    this.edit(cv);
-  }
-
-  add_after() {
-    let pv = this.part_view;
-    if (!pv.cursor_code) return;
-    if (!pv.cursor_code.parent) {
-      return this.add_children();
-    }
-
-    if (pv.cursor_code.is_property) {
-      let prop_view = pv.add_property(
-        "name",
-        "",
-        pv.cursor_code.parent,
-        pv.cursor_code.next
-      );
-      return this.edit(prop_view);
-    }
-
-    if (!pv.cursor_code.parent.model.allowed) return;
-
-    this.__set_mode("add", "after");
-    this.add_code = pv.cursor_code;
-    this.set_allowed(pv.cursor_code.parent.allowed(), this.add_after_function);
-  }
-
-  add_before() {
-    let pv = this.part_view;
-    if (!pv.cursor_code) return;
-    if (!pv.cursor_code.parent) {
-      return this.add_children();
-    }
-
-    if (pv.cursor_code.is_property) {
-      let prop_view = pv.add_property(
-        "name",
-        "v",
-        pv.cursor_code.parent,
-        pv.cursor_code
-      );
-      return this.edit(prop_view);
-    }
-
-    if (!pv.cursor_code.parent.model.allowed) return;
-    this.__set_mode("add", "before");
-    this.add_code = pv.cursor_code;
-    this.set_allowed(pv.cursor_code.parent.allowed(), this.add_before_function);
-  }
-
-  replace_function(model) {
-    let rc = this.rename_code;
-    if (!rc) return;
-
-    let cv = this.part_view.replace(model.convert(rc.code), rc);
-    this.edit(cv);
-  }
-
-  replace() {
-    let pv = this.part_view;
-
-    if (!pv.cursor_code) return;
-    if (!pv.cursor_code.parent) return;
-
-    if (pv.cursor_code.is_property) {
-      return this.set_mode_edit(false);
-    }
-
-    // console.log(object);
-
-    if (!pv.cursor_code.parent.model.allowed) return;
-
-    this.__set_mode("replace");
-    this.rename_code = pv.cursor_code;
-
-    this.set_allowed(pv.cursor_code.parent.allowed(), this.replace_function);
-  }
-
   preview() {
     this.part_view.preview_visible = !this.part_view.preview_visible;
     this.code_preview = this.file.preview();
@@ -270,116 +308,51 @@ export default class EditorView extends View {
     this.code_preview = this.file.preview();
   }
 
-  key(source_event) {
-    let pv = this.part_view;
-    if (this.mode == "edit") {
-      if (is_alphanum(source_event)) {
-        pv.add_text(source_event.key);
-      }
-      switch (source_event.key) {
-        case "Backspace":
-          pv.back_text();
-          break;
-        case "^d":
-        case "Delete":
-          pv.del_text();
-          break;
-        case "Enter":
-          pv.add_text("\n");
-          break;
-      }
-    }
-  }
-
-  cursor_go(pos, source_event) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-    pv.cursor_code_pos(pos);
-  }
-
-  cursor_up(par, source_event) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-    pv.cursor_prev_line(pv.cursor_pos);
-  }
-
-  cursor_down(par, source_event) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-
-    pv.cursor_next_line(pv.cursor_pos);
-  }
-
-  cursor_next(par, source_event) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-
-    pv.cursor_code_pos(pv.cursor_pos + par);
-  }
-
-  cursor_prev(par, source_event) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-
-    pv.cursor_code_pos(pv.cursor_pos - par);
-  }
-
-  cursor_last_in_line(par, source_event) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-
-    pv.cursor_last_in_line(pv.cursor_pos);
-    // return true;
-  }
-
-  cursor_first_in_line(par, source_event) {
-    let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-
-    pv.cursor_first_in_line(pv.cursor_pos);
-  }
-
+  /**
+   * CURSOR GO STRUCTURE
+   */
   __go(par, func) {
     let pv = this.part_view;
-    if (pv.cursor_code == undefined) return;
-    let code = pv.cursor_code;
+    if (pv.cursor == undefined) return;
+
     if (this.repeat_text != "") {
       par = parseInt(this.repeat_text);
       this.repeat_text = "";
     }
-    for (let i = 0; i < par; i++) code = code[func](); // get_next(pv.cursor_code, par); //get first
-    pv.cursor_code_set(code, 0);
+    // console.log(func, this.part_view[func]);
+    for (let i = 0; i < par; i++) func();
   }
 
   next(par = 1, source_event) {
-    this.__go(par, "next_select");
+    this.__go(par, () => this.part_view.cursor_next());
   }
 
   prev(par = 1, source_event) {
-    this.__go(par, "parent_prev_select");
+    this.__go(par, () => this.part_view.cursor_prev()); // parent_prev_select
   }
+
   down(par = 1, source_event) {
-    this.__go(par, "down_select");
+    this.__go(par, () => this.part_view.cursor_down()); //down select
   }
 
   up(par = 1, source_event) {
-    this.__go(par, "up_select");
+    this.__go(par, () => this.part_view.cursor_up()); //up select
   }
 
   next_item(par = 1, source_event) {
-    this.__go(par, "next_item");
+    this.__go(par, () => this.part_view.cursor_next_item());
   }
 
   prev_item(par = 1, source_event) {
-    this.__go(par, "prev_item");
+    this.__go(par, () => this.part_view.cursor_prev_item());
   }
 
   down_item(par = 1, source_event) {
-    this.__go(par, "down_item");
+    this.__go(par, () => this.part_view.cursor_down_item());
   }
 
   up_item(par = 1, source_event) {
-    this.__go(par, "up_item");
+    this.__go(par, () => this.part_view.cursor_up_item());
   }
 
   /**Save repeat number */
@@ -396,6 +369,16 @@ export default class EditorView extends View {
   }
 
   info() {
-    console.log(this.part_view.cursor_code.infod, this.part_view.cursor_code);
+    console.log(
+      this.part_view.cursor.infod,
+      this.part_view.cursor,
+      this.part_view.template[this.part_view.cursor.view_id],
+      {
+        Parent:
+          this.part_view.cursor.parent != undefined
+            ? this.part_view.cursor.parent.info
+            : "-"
+      }
+    );
   }
 }

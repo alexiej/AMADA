@@ -1,14 +1,5 @@
 import Code from "./Code";
 import Property from "./Property";
-// import { View } from "./View";
-// import ModelCreator from "./ModelCreator";
-// export const MODEL_SECTION = -2;
-// export const MODEL_LINE = -1;
-// export const MODEL_INLINE = 1;
-// export const MODEL_GROUP = 2;
-// export const CODE_HEADER = -1;
-// export const CODE_CODES = 0;
-// export const CODE_FOOTER = 1;
 
 const create_const = (model, value, properties = [], codes = []) => {
   return new Code(model, value, properties, codes);

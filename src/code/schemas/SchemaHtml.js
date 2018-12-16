@@ -14,14 +14,6 @@ const fs = require("fs");
 const { promisify } = require("util");
 const readFile = promisify(fs.readFile);
 import { parse } from "himalaya";
-import { Model } from "../Model";
-
-// function ver_regex(regex) {
-//   return function(parent, model, value) {
-//     if (regex.match(value)) return true;
-//     return false;
-//   };
-// }
 
 function __get_properties(code) {
   if (code.properties.length > 0) {

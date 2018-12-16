@@ -1,15 +1,15 @@
 <template>
      <span 
-  :class="[code_view.component_class, code_view.code_class,  
-  code_view==part_view.cursor_code ? 'selected-code' : '']"  
-  class="amada-content" ><span class="header val" :id="code_view.val_id"   :class="{'edited': code_view.val_id == code_view.edit_id }" >{{code_view.edit_text}}</span>
-        <span v-if="code_view.has_codes" class="codes">
-            <component  :key="cv.id" 
+  :class="[view.component_class, view.view_class, code==part_view.cursor ? 'selected-code' : '']"  
+  class="amada-content" ><span class="header val" :id="val_id"   
+  :class="{'edited': val_id == part_view.edit_id }" >{{code.val}} </span>
+       <span v-if="code.has_codes" class="codes">
+            <component  :key="c.id" 
                         :part_view="part_view"
-                        :class="[cv==part_view.cursor_code ? 'selected-code' : '']"
-                        v-for="cv in code_view.codes" 
-                        :code_view="cv"
-                        v-bind:is="cv.component_name">
+                        :class="[c==part_view.cursor ? 'selected-code' : '']"
+                        v-for="c in code.codes" 
+                        :code="c"
+                        v-bind:is="part_view.template[c.view_id].component_name">
             </component>
         </span>
   </span> 
@@ -17,8 +17,14 @@
 <script>
 export default {
   name: "amada-content",
-  props: ["code_view", "part_view"],
-  getters: {
+  props: ["code", "part_view"],
+  computed: {
+    view() {
+      return this.part_view.template[this.code.view_id];
+    },
+    val_id() {
+      return this.part_view.id + "/" + this.code.val_id;
+    }
   }
 };
 </script>

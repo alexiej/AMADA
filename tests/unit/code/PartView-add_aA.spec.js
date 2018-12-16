@@ -15,52 +15,83 @@ let pv = undefined;
 // pv = ev.part_view;
 const { assert } = require("chai");
 
-describe.only("ParView-add_aA.spec.js", () => {
+describe("ParView-add_aA.spec.js", () => {
   it("go edit - comment", async () => {
     file = await amada.file_get(path);
     ev = new EditorView(amada, "id", file);
     pv = ev.part_view;
     ev.down(9);
 
-    expect(pv.cursor_code.infoc).to.eq("comment/ <script s (20)[comment/11]");
+    expect(pv.cursor.info).to.eq("comment: <script s/18");
+  });
+  it("Set mode allowed", async () => {
+    ev.view_add_after();
+    expect(ev.view_code.info).to.eq("comment: <script s/18");
+    expect(ev.allowed_list.length).to.eq(4);
+    expect(ev.allowed_function).to.not.eq(undefined);
+
+    expect(ev.view_code.parent.codes.length).to.eq(8);
+
+    ev.allowed_select(ev.allowed_list[0]);
+    expect(ev.mode).to.eq("edit");
+    ev.mode_set_view();
+    expect(ev.mode).to.eq("view");
   });
   it("add element after", async () => {
-    let cv = pv.add_after(
-      pv.cursor_code,
-      ev.schema.models["tag"].create("html")
-    );
-    expect(cv.infoc).to.eq("tag/html (29)[tag/19]");
-    expect(cv.parent.infoc).to.eq("head/head (5)[head/3]");
-    expect(cv.parent.code.codes.length).to.eq(9);
-    expect(cv.parent.code_views.length).to.eq(9);
-    expect(cv.parent.codes.length).to.eq(9);
+    //<-we add cursror code
+    let c = pv.cursor;
+    expect(c.info).to.eq("tag:_name_/27");
+    expect(c.parent.info).to.eq("head:head/3");
 
-    expect(cv.next.infoc).to.eq("comment/A (21)[comment/12]");
-    expect(cv.prev.infoc).to.eq("comment/ <script s (20)[comment/11]");
+    expect(pv.cursor.parent.codes.length).to.eq(9);
+    expect(pv.cursor.parent.codes.indexOf(c)).to.eq(7);
 
-    expect(pv.cursor_code.infoc).to.eq("comment/ <script s (20)[comment/11]");
-  });
-  it("add element before", async () => {
-    let cv = pv.add_before(
-      pv.cursor_code,
-      ev.schema.models["tag"].create("html2")
-    );
-    expect(cv.infoc).to.eq("tag/html2 (30)[tag/20]");
-    expect(cv.parent.infoc).to.eq("head/head (5)[head/3]");
-    expect(cv.parent.code.codes.length).to.eq(10);
-    expect(cv.parent.code_views.length).to.eq(10);
-    expect(cv.parent.codes.length).to.eq(10);
+    expect(pv.cursor.parent.codes[6].info).to.eq("comment: <script s/18");
+    expect(pv.cursor.parent.codes[8].info).to.eq("comment:A/19");
+  }),
+    it("add elemetn before - allowed ", async () => {
+      ev.view_add_after();
+      expect(ev.view_code.info).to.eq("tag:_name_/27");
+      expect(ev.allowed_list.length).to.eq(4);
+      expect(ev.allowed_function).to.not.eq(undefined);
 
-    expect(cv.next.infoc).to.eq("comment/ <script s (20)[comment/11]");
-    expect(cv.prev.infoc).to.eq("comment/ <link rel (19)[comment/10]");
+      expect(ev.view_code.parent.codes.length).to.eq(9);
 
-    expect(pv.cursor_code.infoc).to.eq("comment/ <script s (20)[comment/11]");
+      ev.allowed_select(ev.allowed_list[0]);
+      expect(ev.mode).to.eq("edit");
+      ev.mode_set_view();
+      expect(ev.mode).to.eq("view");
+    }),
+    it("add element before", async () => {
+      let c = pv.cursor;
+      expect(c.info).to.eq("tag:_name_/28");
+      expect(c.parent.info).to.eq("head:head/3");
+
+      expect(pv.cursor.parent.codes.length).to.eq(10);
+      expect(pv.cursor.parent.codes.indexOf(c)).to.eq(8);
+
+      expect(pv.cursor.parent.codes[7].info).to.eq("tag:_name_/27");
+      expect(pv.cursor.parent.codes[9].info).to.eq("comment:A/19");
+    });
+  it("add property before", async () => {
+    ev.up(5);
+    ev.next(1);
+    expect(pv.cursor.parent.properties.length).to.eq(2);
+    expect(pv.cursor.info).to.eq("rel='icon'/13");
+    ev.view_add_before();
+    expect(ev.mode).to.eq("edit");
+    ev.mode_set_view();
+
+    expect(ev.mode).to.eq("view");
+    expect(pv.cursor.info).to.eq("name=''/29");
+    expect(pv.cursor.parent.properties.length).to.eq(3);
   });
   it("add property after", async () => {
-    let cv = pv.add_before(
-      pv.cursor_code,
-      ev.schema.models["tag"].create("html2")
-    );
-  
+    ev.view_add_after();
+    expect(ev.mode).to.eq("edit");
+    ev.mode_set_view();
+    expect(ev.mode).to.eq("view");
+    expect(pv.cursor.info).to.eq("name=''/30");
+    expect(pv.cursor.parent.properties.length).to.eq(4);
   });
 });

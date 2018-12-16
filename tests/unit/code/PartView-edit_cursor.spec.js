@@ -65,70 +65,71 @@ describe("ParView - cursor.spec.js", () => {
     ev = new EditorView(amada, "id", file);
     pv = ev.part_view;
     // expect(await json(ev)).to.eq(await jsone(ev, "../test/editor_view_01"));
-    expect(pv.cursor_code.info).to.eq("html/html (3)");
+    expect(pv.cursor.info).to.eq("section-part:HTML/0");
   });
   it("go edit - comment", async () => {
     ev.down(8);
-    expect(pv.cursor_code.info).to.eq("comment/ <link rel (19)"); //we are in the comments
+    expect(pv.cursor.info).to.eq("comment: <link rel/17"); //we are in the comments
 
-    ev.set_mode_edit();
+    ev.mode_set_edit();
     expect(ev.mode).to.eq("edit"); //we are in the comments
 
-    ev.cursor_next(2);
+    pv.edit_next(2);
+
     expect(pv.cursor_pos).to.eq(2);
     expect(pv.cursor_x).to.eq(2);
 
-    // ev.cursor_next(undefined, amada, 64);
-    ev.cursor_down(1);
+    // pv.edit_next(undefined, amada, 64);
+    pv.edit_next_line();
     expect(pv.cursor_x).to.eq(2);
     expect(pv.cursor_pos).to.eq(62);
 
-    ev.cursor_up(1);
+    pv.edit_prev_line();
 
     expect(pv.cursor_pos).to.eq(2); //we are in the comments
     expect(pv.cursor_x).to.eq(2); //we are in the comments
   });
   it("go +1 line/-1 line", async () => {
-    ev.cursor_down(1);
-    ev.cursor_down(1);
+    pv.edit_next_line();
+    pv.edit_next_line();
 
-    ev.cursor_up(1);
+    pv.edit_prev_line();
 
     expect(pv.cursor_pos).to.eq(62); //we are in the comments
     expect(pv.cursor_x).to.eq(2); //we are in the comments
   });
   it("go  -1 line", async () => {
-    ev.cursor_up(1);
-    ev.cursor_up(1);
+    pv.edit_prev_line();
+    pv.edit_prev_line();
 
     expect(pv.cursor_pos).to.eq(186); //we are in the comments
     expect(pv.cursor_x).to.eq(2); //we are in the comments
   });
   it("go +1 line/break", async () => {
-    ev.cursor_down(1);
+    pv.edit_next_line();
     expect(pv.cursor_pos).to.eq(2); //we are in the comments
     expect(pv.cursor_pos).to.eq(pv.cursor_x); //we are in the comments
   });
   it("go pos 26", async () => {
-    ev.cursor_go(26);
+    pv.cursor_pos_set(26);
     expect(pv.cursor_pos).to.eq(26); //we are in the comments
     expect(pv.cursor_x).to.eq(26); //we are in the comments
-    ev.cursor_down(1);
+    pv.edit_next_line();
     expect(pv.cursor_x).to.eq(20); //we are
     expect(pv.cursor_pos).to.eq(80); //we are in the comments
   });
   it("go down", async () => {
-    ev.cursor_down(1);
+    pv.edit_next_line();
     expect(pv.cursor_pos).to.eq(93); //we are in the comments
 
     expect(pv.cursor_x).to.eq(12); //we are
   });
   it("go up", async () => {
-    ev.cursor_go(110);
+    pv.cursor_pos_set(110);
     expect(pv.cursor_pos).to.eq(110); //we are in the comments
     expect(pv.cursor_x).to.eq(16); //we are in the comments
 
-    ev.cursor_up(1);
+    pv.edit_prev_line();
     expect(pv.cursor_pos).to.eq(93); //we are in the comments
 
     expect(pv.cursor_x).to.eq(12); //we are
@@ -137,72 +138,72 @@ describe("ParView - cursor.spec.js", () => {
     console.log(
       "==================================================================="
     );
-    ev.cursor_go(118);
+    pv.cursor_pos_set(118);
     expect(pv.cursor_pos).to.eq(118); //we are in the comments
     expect(pv.cursor_x).to.eq(24); //we are in the comments
 
-    ev.cursor_down(1);
+    pv.edit_next_line();
     expect(pv.cursor_pos).to.eq(201); //we are in the comments
     expect(pv.cursor_x).to.eq(17); //we are on the end of the text
   });
 
   it("go next", async () => {
-    ev.cursor_next(1);
+    pv.edit_next(1);
     expect(pv.cursor_pos).to.eq(0); //we are in the comments
     expect(pv.cursor_x).to.eq(0); //we are
   });
   it("go 0->prev", async () => {
-    ev.cursor_prev(1);
+    pv.edit_prev(1);
     expect(pv.cursor_pos).to.eq(201); //we are in the comments
     expect(pv.cursor_x).to.eq(17); //we are
   });
   it("go down/2", async () => {
-    ev.cursor_go(21);
+    pv.cursor_pos_set(21);
     expect(pv.cursor_pos).to.eq(21); //we are in the comments
     expect(pv.cursor_x).to.eq(21); //we are in the comments
 
-    ev.cursor_down(1);
+    pv.edit_next_line();
     expect(pv.cursor_pos).to.eq(80); //we are in the comments
     expect(pv.cursor_x).to.eq(20); //we are
   });
 
   it("go begin line", async () => {
-    ev.cursor_go(6);
+    pv.cursor_pos_set(6);
     expect(pv.cursor_pos).to.eq(6); //we are in the comments
     expect(pv.cursor_x).to.eq(6); //we are in the comments
 
-    ev.cursor_first_in_line();
+    pv.edit_first_in_line();
     expect(pv.cursor_pos).to.eq(0); //we are in the comments
     expect(pv.cursor_x).to.eq(0); //we are
 
-    ev.cursor_last_in_line();
+    pv.edit_last_in_line();
     expect(pv.cursor_pos).to.eq(59); //we are in the comments
     expect(pv.cursor_x).to.eq(59); //we are
 
-    ev.cursor_go(191);
+    pv.cursor_pos_set(191);
     expect(pv.cursor_pos).to.eq(191); //we are in the comments
     expect(pv.cursor_x).to.eq(7); //we are in the comments
 
-    ev.cursor_first_in_line();
+    pv.edit_first_in_line();
     expect(pv.cursor_pos).to.eq(184); //we are in the comments
     expect(pv.cursor_x).to.eq(0); //we are
 
-    ev.cursor_last_in_line();
+    pv.edit_last_in_line();
     expect(pv.cursor_pos).to.eq(201); //we are in the comments
     expect(pv.cursor_x).to.eq(17); //we are
   });
 
   it("go empty line", async () => {
-    ev.set_mode_view();
+    ev.mode_set_view();
     ev.down(2);
-    expect(pv.cursor_code.info).to.eq("comment/A (21)"); //we are in the comments
+    expect(pv.cursor.info).to.eq("comment:A/19"); //we are in the comments
 
-    ev.set_mode_edit();
+    ev.mode_set_edit();
   });
 
   it("go end of line", async () => {
-    ev.cursor_last_in_line();
-    expect(pv.cursor_code.info).to.eq("comment/A (21)"); //we are in the comments
+    pv.edit_last_in_line();
+    expect(pv.cursor.info).to.eq("comment:A/19"); //we are in the comments
     expect(pv.cursor_pos).to.eq(1); //we are in the comments
   });
 });
