@@ -32,7 +32,7 @@
     "@vue/eslint-config-prettier": "^3.0.1",
     "@vue/test-utils": "^1.0.0-beta.20",
     "chai": "^4.1.2",
-    "electron": "^2.0.2",
+    "electron": "^9.4.0",
     "jstransformer-markdown-it": "^2.1.0",
     "karma-nyan-reporter": "^0.2.5",
     "karma-webpack": "^3.0.5",
